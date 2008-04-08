@@ -22,6 +22,7 @@ package org.apache.fulcrum.parser;
 
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Locale;
 
 import org.apache.avalon.framework.component.ComponentException;
@@ -70,6 +71,33 @@ public class BaseValueParserTest extends BaseUnitTest
     {
         parserService.putParser(parser);
         this.release(parserService);
+    }
+    
+    public void testDate()
+    {
+        parser.clear();
+        parser.setLocale(Locale.US);
+
+        assertEquals("Wrong number of keys", 0, parser.keySet().size());
+
+        parser.add("foo", "03/21/2008");
+        
+        Calendar cal = Calendar.getInstance(Locale.US);
+        cal.clear();
+        cal.set(2008, 2, 21, 0, 0, 0);
+
+        assertEquals("Wrong Date value (US)", cal.getTime(), parser.getDate("foo"));
+
+        parser.clear();
+        parser.setLocale(Locale.GERMANY);
+
+        parser.add("foo", "21.03.2008");
+        
+        cal = Calendar.getInstance(Locale.GERMANY);
+        cal.clear();
+        cal.set(2008, 2, 21, 0, 0, 0);
+
+        assertEquals("Wrong Date value (German)", cal.getTime(), parser.getDate("foo"));
     }
 
     public void testGetByte()
