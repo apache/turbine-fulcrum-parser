@@ -27,8 +27,6 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
 
 /**
  * ValueParser is a base interface for classes that need to parse
@@ -51,52 +49,10 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface ValueParser
 {
-    /** Avalon Identifier **/
-    String ROLE = ValueParser.class.getName();
-
-    /** Default Encoding for Parameter Parser */
-    static final String PARAMETER_ENCODING_DEFAULT = "ISO-8859-1";
-
-    /** Key for the Parameter Parser Encoding */
-    static final String PARAMETER_ENCODING_KEY = "parameterEncoding";
-
-    /** Property for setting the URL folding value */
-    static final String URL_CASE_FOLDING_KEY = "urlCaseFolding";
-
-    /** No folding */
-    static final String URL_CASE_FOLDING_NONE_VALUE  = "none";
-
-    /** Fold to lower case */
-    static final String URL_CASE_FOLDING_LOWER_VALUE = "lower";
-
-    /** Fold to upper case */
-    static final String URL_CASE_FOLDING_UPPER_VALUE = "upper";
-
-    /** No folding set */
-    static final int URL_CASE_FOLDING_UNSET = 0;
-
-    /** Folding set to "no folding" */
-    static final int URL_CASE_FOLDING_NONE  = 1;
-
-    /** Folding set to "lowercase" */
-    static final int URL_CASE_FOLDING_LOWER = 2;
-
-    /** Folding set to "uppercase" */
-    static final int URL_CASE_FOLDING_UPPER = 3;
-
-    /** Parse file upload items automatically */
-    static final String AUTOMATIC_KEY = "automaticUpload";
-
     /**
-     * <p> The default value of 'automaticUpload' property
-     * (<code>false</code>).  If set to <code>true</code>, parsing the
-     * multipart request will be performed automatically by {@link
-     * org.apache.fulcrum.parser.ParameterParser}.  Otherwise, an {@link
-     * org.apache.turbine.modules.Action} may decide to parse the
-     * request by calling {@link #parseRequest(HttpServletRequest, String)
-     * parseRequest} manually.
+     * The default character encoding to use when converting to byte arrays
      */
-    static final boolean AUTOMATIC_DEFAULT = false;
+    String DEFAULT_CHARACTER_ENCODING = "US-ASCII";
 
     /**
      * Clear all name/value pairs out of this object.
@@ -719,17 +675,10 @@ public interface ValueParser
     String convertAndTrim(String s, int folding);
 
     /**
-     * Gets the folding value from the configuration
+     * Gets the folding value from the ParserService configuration
      *
      * @return The current Folding Value
      */
     int getUrlFolding();
-
-    /**
-     * Gets the automaticUpload value from the configuration
-     *
-     * @return The current automaticUpload Value
-     */
-    boolean getAutomaticUpload();
 }
 

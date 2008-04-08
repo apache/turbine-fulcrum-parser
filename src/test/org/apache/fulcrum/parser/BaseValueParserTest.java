@@ -41,6 +41,8 @@ public class BaseValueParserTest extends BaseUnitTest
 
 	private BaseValueParser parser;
 
+    private ParserService parserService;
+
     /**
      * Performs any initialization that must happen before each test is run.
      * @throws Exception
@@ -50,7 +52,8 @@ public class BaseValueParserTest extends BaseUnitTest
         super.setUp();
         try
         {
-            parser = (BaseValueParser) this.lookup(ValueParser.ROLE);
+            parserService = (ParserService)this.lookup(ParserService.ROLE);
+            parser = (BaseValueParser) parserService.getParser(BaseValueParser.class);
         }
         catch (ComponentException e)
         {
@@ -64,7 +67,8 @@ public class BaseValueParserTest extends BaseUnitTest
      */
     protected void tearDown()
     {
-        parser = null;
+        parserService.putParser(parser);
+        this.release(parserService);
     }
 
     public void testGetByte()
@@ -636,10 +640,11 @@ public class BaseValueParserTest extends BaseUnitTest
     {
         try
         {
-            BaseValueParser vp = (BaseValueParser)this.lookup(ValueParser.ROLE);
+            BaseValueParser vp = (BaseValueParser) parserService.getParser(BaseValueParser.class);
             assertFalse(vp.isDisposed());
+            parserService.putParser(vp);
         }
-        catch (ComponentException e)
+        catch (InstantiationException e)
         {
             assertTrue("Could not instantiate ValueParser object", false);
         }

@@ -55,9 +55,6 @@ import javax.servlet.http.HttpServletResponse;
 public interface CookieParser
     extends ValueParser
 {
-    /** Avalon Identifier **/
-    String ROLE = CookieParser.class.getName();
-
     static final int AGE_SESSION = -1;
     static final int AGE_DELETE = 0;
 

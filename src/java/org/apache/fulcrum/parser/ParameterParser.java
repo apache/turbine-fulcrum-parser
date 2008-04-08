@@ -54,9 +54,6 @@ import org.apache.commons.fileupload.FileItem;
 public interface ParameterParser
     extends ValueParser
 {
-    /** Avalon Identifier **/
-    String ROLE = ParameterParser.class.getName();
-
     /**
      * Gets the parsed servlet request.
      *

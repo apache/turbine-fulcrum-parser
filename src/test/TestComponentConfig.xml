@@ -22,11 +22,5 @@
 		<parameterEncoding>utf-8</parameterEncoding>
 		<automaticUpload>true</automaticUpload>
     </parser>
-    <cookie>
-		<parameterEncoding>utf-8</parameterEncoding>
-    </cookie>
-    <base>
-		<parameterEncoding>utf-8</parameterEncoding>
-    </base>
     <upload repository="target" sizeMax="1048576" sizeThreshold="10240"/>
 </componentConfig>

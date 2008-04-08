@@ -29,7 +29,7 @@
 
   <section name="Overview">
     <p>
-     This Service functions as a Parser component.
+     This Service functions as a repository for Parser components.
    </p>
 
     <p>
@@ -47,10 +47,10 @@
 
     <source>
     <![CDATA[
-        <role
-            name="org.apache.fulcrum.parser.*"
-            shorthand="cache"
-            default-class="org.apache.fulcrum.parser.*"/>
+    <role
+        name="org.apache.fulcrum.parser.ParserService"
+        shorthand="parser"
+        default-class="org.apache.fulcrum.parser.DefaultParserService"/>
     ]]>
     </source>
 
@@ -60,51 +60,36 @@
     <source>
 
     <![CDATA[
-        <cache cacheInitialSize="20" cacheCheckFrequency="5"/>
+    <parser>
+        <parameterEncoding>utf-8</parameterEncoding>
+        <automaticUpload>true</automaticUpload>
+    </parser>
     ]]>
     </source>
 
   </section>
 
   <section name="Usage">
+    <p>
+    You get a parser from the service like this:
+    </p>
 
     <source><![CDATA[
+    // Get a ValueParser instance
+    ValueParser parser = (ValueParser) parserService.getParser(BaseValueParser.class);
 
-    GlobalCacheService gs = null;
-    try
-    {
-        /*
-         * Look for the item in the cache.
-         * If it doesn't exist or the item is stale,
-         * the cache will throw an exception.
-         */
-        gs = (GlobalCacheService)avalonComponentService.lookup(GlobalCacheService.ROLE)
-
-        CachedObject obj = gs.getObject("cached_object");
-
-        data.setMessage( data.getScreen() + " Got " +
-            obj.getContents().toString() + " from global cache!" );
-    }
-    catch(ObjectExpiredException gone)
-    {
-        /*
-         * Add the item to the cache.
-         */
-        gs.addObject("cached_object",
-            new CachedObject("in_the_cache",5000));
-
-        data.setMessage( data.getScreen() +
-            " Refreshed/or added new item to" +
-            " the cache! Expires in 5 seconds" );
-    }
-
+    parser.add(...);
+    Double d = parser.getDoubleObject(...);
+    
+    // Return the instance to the service
+    parserService.putParser(parser);
     ]]></source>
 
     <p>
-    You can also place an expiration time on your objects so the Service will
-    automatically remove them when they expire. If you don't specify an expiration
-    time, the Service uses 5 seconds. To see an example, look at the
-    test case <a href="xref-test/org/apache/fulcrum/cache/CacheTest.html">CacheTest</a>
+    Parsers are pooled inside the service. You can use this service to manage any types of
+    parsers, you just need to provide the class you wnat to manage. If the parser class 
+    implements LogEnabled it will get an (Avalon) logger injected. If the parser class 
+    implements ParserServiceSupport it will get an instance of this service injected. 
     </p>
 
   </section>

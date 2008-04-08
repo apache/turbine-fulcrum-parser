@@ -25,6 +25,10 @@
 
   <body>
     <release version="1.0.2-dev" date="in SVN">
+     <action dev="tv" type="update" issue="TRB-39">
+        Totally refactored the component to provide correctly initialized
+        parser objects.
+      </action>
      <action dev="tv" type="update" issue="TRB-32" due-to="Juergen Hofmann">
         Port parser fixes of  Turbine 2.3.2 over to the component.
       </action>

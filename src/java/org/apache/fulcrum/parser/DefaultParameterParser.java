@@ -31,11 +31,8 @@ import java.util.StringTokenizer;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.avalon.framework.service.ServiceException;
-import org.apache.avalon.framework.service.ServiceManager;
-import org.apache.avalon.framework.service.Serviceable;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.fulcrum.upload.UploadService;
 
 /**
  * DefaultParameterParser is a utility object to handle parsing and
@@ -64,8 +61,7 @@ import org.apache.fulcrum.upload.UploadService;
  */
 public class DefaultParameterParser
     extends BaseValueParser
-    implements ParameterParser,
-               Serviceable
+    implements ParameterParser
 {
     /**
      * The servlet request to parse.
@@ -76,11 +72,6 @@ public class DefaultParameterParser
      * The raw data of a file upload.
      */
     private byte[] uploadData = null;
-
-    /**
-     * The upload service component to use
-     */
-    private UploadService uploadService = null;
 
     /**
      * Create a new empty instance of ParameterParser.  Uses the
@@ -152,12 +143,11 @@ public class DefaultParameterParser
         String enc = request.getCharacterEncoding();
         setCharacterEncoding(enc != null
                 ? enc
-                : parameterEncoding);
+                : parserService.getParameterEncoding());
 
         String contentType = request.getHeader("Content-type");
 
-        if (uploadService != null
-                && getAutomaticUpload()
+        if (parserService.getAutomaticUpload()
                 && contentType != null
                 && contentType.startsWith("multipart/form-data"))
         {
@@ -168,7 +158,7 @@ public class DefaultParameterParser
 
             try
             {
-                List fileItems = uploadService.parseRequest(request);
+                List fileItems = parserService.parseUpload(request);
 
                 if (fileItems != null)
                 {
@@ -360,31 +350,6 @@ public class DefaultParameterParser
         catch ( ClassCastException e )
         {
             return null;
-        }
-    }
-
-    // ---------------- Avalon Lifecycle Methods ---------------------
-    /**
-     * Avalon component lifecycle method
-     */
-    public void service(ServiceManager manager) throws ServiceException
-    {
-        if (manager.hasService(UploadService.ROLE))
-        {
-            uploadService = (UploadService)manager.lookup(UploadService.ROLE);
-        }
-        else
-        {
-            /*
-             * Automatic parsing of uploaded file items was requested but no
-             * UploadService is available
-             */
-            if (getAutomaticUpload())
-            {
-                throw new ServiceException(ParameterParser.ROLE,
-                        AUTOMATIC_KEY + " = true requires " +
-                        UploadService.ROLE + " to be available");
-            }
         }
     }
 }

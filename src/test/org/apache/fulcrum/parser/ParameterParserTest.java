@@ -37,6 +37,8 @@ public class ParameterParserTest extends BaseUnitTest
 {
     private ParameterParser parameterParser = null;
 
+    private ParserService parserService;
+
     /**
      * Defines the testcase name for JUnit.
      *
@@ -52,7 +54,8 @@ public class ParameterParserTest extends BaseUnitTest
         super.setUp();
         try
         {
-            parameterParser = (ParameterParser) this.lookup(ParameterParser.class.getName());
+            parserService = (ParserService)this.lookup(ParserService.ROLE);
+            parameterParser = (ParameterParser) parserService.getParser(DefaultParameterParser.class);
         }
         catch (ComponentException e)
         {
@@ -63,7 +66,7 @@ public class ParameterParserTest extends BaseUnitTest
 
     public void testConfiguredUrlCaseFolding() throws Exception
     {
-        assertTrue(parameterParser.getUrlFolding() == ParameterParser.URL_CASE_FOLDING_NONE);
+        assertTrue(parameterParser.getUrlFolding() == ParserService.URL_CASE_FOLDING_NONE);
     }
 
     /**
@@ -73,9 +76,9 @@ public class ParameterParserTest extends BaseUnitTest
      */
     public void testRepositoryExists() throws Exception
     {
-        assertEquals("TRIMMED_and_Not_Modified",parameterParser.convertAndTrim(" TRIMMED_and_Not_Modified ", ParameterParser.URL_CASE_FOLDING_NONE));
-        assertEquals("trimmed_and_lower_case",parameterParser.convertAndTrim(" TRIMMED_and_Lower_Case ", ParameterParser.URL_CASE_FOLDING_LOWER));
-        assertEquals("TRIMMED_AND_UPPER_CASE",parameterParser.convertAndTrim(" TRIMMED_and_Upper_Case ", ParameterParser.URL_CASE_FOLDING_UPPER));
+        assertEquals("TRIMMED_and_Not_Modified",parameterParser.convertAndTrim(" TRIMMED_and_Not_Modified ", ParserService.URL_CASE_FOLDING_NONE));
+        assertEquals("trimmed_and_lower_case",parameterParser.convertAndTrim(" TRIMMED_and_Lower_Case ", ParserService.URL_CASE_FOLDING_LOWER));
+        assertEquals("TRIMMED_AND_UPPER_CASE",parameterParser.convertAndTrim(" TRIMMED_and_Upper_Case ", ParserService.URL_CASE_FOLDING_UPPER));
     }
 
     /**

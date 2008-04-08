@@ -25,18 +25,18 @@
         default-class="org.apache.fulcrum.upload.DefaultUploadService"
     />
     <role
-        name="org.apache.fulcrum.parser.ParameterParser"
+        name="org.apache.fulcrum.pool.PoolService"
         shorthand="parser"
-        default-class="org.apache.fulcrum.parser.DefaultParameterParser"
+        default-class="org.apache.fulcrum.pool.DefaultPoolService"
     />
     <role
-        name="org.apache.fulcrum.parser.CookieParser"
-        shorthand="cookie"
-        default-class="org.apache.fulcrum.parser.DefaultCookieParser"
+        name="org.apache.fulcrum.factory.FactoryService"
+        shorthand="parser"
+        default-class="org.apache.fulcrum.factory.DefaultFactoryService"
     />
     <role
-        name="org.apache.fulcrum.parser.ValueParser"
-        shorthand="base"
-        default-class="org.apache.fulcrum.parser.BaseValueParser"
+        name="org.apache.fulcrum.parser.ParserService"
+        shorthand="parser"
+        default-class="org.apache.fulcrum.parser.DefaultParserService"
     />
 </role-list>

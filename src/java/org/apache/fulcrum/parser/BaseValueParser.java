@@ -34,10 +34,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.avalon.framework.configuration.Configurable;
-import org.apache.avalon.framework.configuration.Configuration;
-import org.apache.avalon.framework.configuration.ConfigurationException;
-import org.apache.avalon.framework.logger.AbstractLogEnabled;
+import org.apache.avalon.framework.logger.LogEnabled;
+import org.apache.avalon.framework.logger.Logger;
 import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -75,30 +73,29 @@ import org.apache.fulcrum.pool.Recyclable;
  * @version $Id$
  */
 public class BaseValueParser
-    extends AbstractLogEnabled
     implements ValueParser,
-               Recyclable, Configurable
+               Recyclable, ParserServiceSupport, LogEnabled
 {
-    /** The folding from the configuration */
-    private int folding = URL_CASE_FOLDING_NONE;
+    /** The ParserService instance to query for conversion and configuration */
+    protected ParserService parserService;
 
-    /** The automaticUpload setting from the configuration */
-    private boolean automaticUpload = AUTOMATIC_DEFAULT;
+    /** A convenience logger */
+    private Logger logger;
 
-    public BaseValueParser()
-    {
-        recycle();
-    }
+    /**
+     * The character encoding to use when converting to byte arrays
+     */
+    private String characterEncoding = DEFAULT_CHARACTER_ENCODING;
 
     /**
      * Random access storage for parameter data.
      */
     protected Hashtable parameters = new Hashtable();
 
-    /**
-     * The character encoding to use when converting to byte arrays
-     */
-    private String characterEncoding = "US-ASCII";
+    public BaseValueParser()
+    {
+        this(DEFAULT_CHARACTER_ENCODING);
+    }
 
     /**
      * Constructor that takes a character encoding
@@ -108,13 +105,40 @@ public class BaseValueParser
         super();
         recycle(characterEncoding);
     }
+    
+    /**
+     * Set a ParserService instance
+     */
+    public void setParserService(ParserService parserService)
+    {
+        this.parserService = parserService;
+        
+    }
 
+    /**
+     * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
+     */
+    public void enableLogging(Logger logger)
+    {
+        this.logger = logger;
+    }
+
+    /**
+     * Provide an Avalon logger to the derived classes
+     * 
+     * @return An Avalon logger instance
+     */
+    protected Logger getLogger()
+    {
+        return logger;
+    }
+    
     /**
      * Recycles the parser.
      */
     public void recycle()
     {
-        recycle("US-ASCII");
+        recycle(DEFAULT_CHARACTER_ENCODING);
     }
 
     /**
@@ -1561,10 +1585,6 @@ public class BaseValueParser
      */
     private boolean disposed;
 
-    protected String parameterEncoding;
-
-
-
     /**
      * Checks whether the object is disposed.
      *
@@ -1619,112 +1639,31 @@ public class BaseValueParser
      */
     public String convertAndTrim(String value)
     {
-        return convertAndTrim(value, getUrlFolding());
+        return parserService.convertAndTrim(value);
     }
 
     /**
-     * A static version of the convert method, which
-     * trims the string data and applies the conversion specified in
-     * the property given by URL_CASE_FOLDING.  It returns a new
+     * A convert method, which trims the string data and applies the 
+     * conversion specified in the parameter given. It returns a new
      * string so that it does not destroy the value data.
      *
      * @param value A String to be processed.
-     * @return A new String converted to lowercase and trimmed.
+     * @param fold The parameter folding to be applied 
+     * (see {@link ParserService})
+     * @return A new String converted to the correct case and trimmed.
      */
     public String convertAndTrim(String value, int fold)
     {
-        if(value == null) return "";
-
-        String tmp = value.trim();
-
-        switch (fold)
-        {
-            case URL_CASE_FOLDING_NONE:
-            {
-                break;
-            }
-
-            case URL_CASE_FOLDING_LOWER:
-            {
-                tmp = tmp.toLowerCase();
-                break;
-            }
-
-            case URL_CASE_FOLDING_UPPER:
-            {
-                tmp = tmp.toUpperCase();
-                break;
-            }
-
-            default:
-            {
-                getLogger().error("Passed " + fold + " as fold rule, which is illegal!");
-                break;
-            }
-        }
-        return tmp;
+        return parserService.convertAndTrim(value, fold);
     }
 
     /**
-     * Gets the folding value from the configuration
+     * Gets the folding value from the ParserService configuration
      *
      * @return The current Folding Value
      */
     public int getUrlFolding()
     {
-        return folding;
-    }
-
-    /**
-     * Gets the automaticUpload value from the configuration
-     *
-     * @return The current automaticUpload Value
-     */
-    public boolean getAutomaticUpload()
-    {
-        return automaticUpload;
-    }
-
-    /**
-     * Avalon component lifecycle method
-     */
-    public void configure(Configuration conf) throws ConfigurationException
-    {
-        if (folding == URL_CASE_FOLDING_UNSET)
-        {
-            String foldString = conf.getChild(URL_CASE_FOLDING_KEY).getValue(URL_CASE_FOLDING_NONE_VALUE).toLowerCase();
-
-            folding = URL_CASE_FOLDING_NONE;
-
-            getLogger().debug("Setting folding from " + foldString);
-
-            if (StringUtils.isNotEmpty(foldString))
-            {
-                if (foldString.equals(URL_CASE_FOLDING_NONE_VALUE))
-                {
-                    folding = URL_CASE_FOLDING_NONE;
-                }
-                else if (foldString.equals(URL_CASE_FOLDING_LOWER_VALUE))
-                {
-                    folding = URL_CASE_FOLDING_LOWER;
-                }
-                else if (foldString.equals(URL_CASE_FOLDING_UPPER_VALUE))
-                {
-                    folding = URL_CASE_FOLDING_UPPER;
-                }
-                else
-                {
-                    getLogger().error("Got " + foldString + " from " + URL_CASE_FOLDING_KEY + " property, which is illegal!");
-                    throw new ConfigurationException("Value " + foldString + " is illegal!");
-                }
-            }
-        }
-
-        parameterEncoding = conf.getChild(PARAMETER_ENCODING_KEY)
-                            .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();
-
-        automaticUpload = conf.getAttributeAsBoolean(
-                            AUTOMATIC_KEY,
-                            AUTOMATIC_DEFAULT);
+        return parserService.getUrlFolding();
     }
 }
