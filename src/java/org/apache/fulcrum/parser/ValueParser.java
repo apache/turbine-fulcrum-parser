@@ -1,6 +1,5 @@
 package org.apache.fulcrum.parser;
 
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,11 +19,12 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
-
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
 
 
@@ -69,6 +69,36 @@ public interface ValueParser
      */
     String getCharacterEncoding();
 
+    /**
+     * Set the locale that will be used by this ValueParser.
+     */
+    void setLocale(Locale l);
+
+    /**
+     * Get the locale that will be used by this ValueParser.
+     */
+    Locale getLocale();
+
+    /**
+     * Set the date format that will be used by this ValueParser.
+     */
+    void setDateFormat(DateFormat df);
+
+    /**
+     * Get the date format that will be used by this ValueParser.
+     */
+    DateFormat getDateFormat();
+
+    /**
+     * Set the number format that will be used by this ValueParser.
+     */
+    void setNumberFormat(NumberFormat nf);
+
+    /**
+     * Get the number format that will be used by this ValueParser.
+     */
+    NumberFormat getNumberFormat();
+    
     /**
      * Trims the string data and applies the conversion specified in
      * the property given by URL_CASE_FOLDING. It returns a new

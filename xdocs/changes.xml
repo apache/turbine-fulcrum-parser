@@ -25,6 +25,18 @@
 
   <body>
     <release version="1.0.2-dev" date="in SVN">
+    <action type="update" dev="tv">
+        Important change: The BaseValueParser now consistently returns null for 
+        all get-methods that return an Object, if the parameter name does not exist.
+        This changes the behaviour of getBigDecimal which used to return 0 in this 
+        case.
+    </action>
+    <action type="add" dev="tv">
+        Made ValueParser and BaseValueParser locale-aware. Note that the default
+        locale used is always the default value of the JVM which is different from 
+        the previous behaviour where the locale used was sometimes Locale.US (for
+        float, double and BigDecimal) and sometimes the JVM-default (for dates).
+    </action>
      <action dev="tv" type="update" issue="TRB-39">
         Totally refactored the component to provide correctly initialized
         parser objects.

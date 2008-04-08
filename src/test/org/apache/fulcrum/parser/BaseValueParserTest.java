@@ -22,6 +22,7 @@ package org.apache.fulcrum.parser;
 
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 import org.apache.avalon.framework.component.ComponentException;
 import org.apache.fulcrum.testcontainer.BaseUnitTest;
@@ -720,16 +721,17 @@ public class BaseValueParserTest extends BaseUnitTest
     public void testDoubleAdd()
     {
         parser.clear();
+        parser.setLocale(Locale.US);
 
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
 
-        double testValue = 2.0;
+        double testValue = 2.2;
 
         parser.add("foo", testValue);
 
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
-        assertEquals("Wrong string value", "2.0", parser.getString("foo"));
+        assertEquals("Wrong string value", "2.2", parser.getString("foo"));
         assertEquals("Wrong double value", (double) testValue, parser.getDouble("foo"), 0.001);
         assertEquals("Wrong Double value", (double) testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
 
@@ -742,6 +744,17 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong Array Size", 1, doubleObjs.length);
 
         assertEquals("Wrong Double array value", testValue, doubleObjs[0].doubleValue(), 0.001);
+
+        parser.clear();
+        parser.setLocale(Locale.GERMANY);
+        
+        String testDouble = "2,3";
+        parser.add("foo", testDouble);
+        assertEquals("Wrong double value", 2.3, parser.getDouble("foo"), 0.001);
+        
+        parser.add("unparsable2", "1a");
+        Double result = parser.getDoubleObject("unparsable2");
+        assertNull("Double object should be null", result);
     }
 
     public void testIntAdd()
@@ -1780,7 +1793,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
 
-        assertEquals("Wrong value for non existing key", 0.0, parser.getBigDecimal("foo").doubleValue(), 0.001);
+        assertNull(parser.getBigDecimal("foo"));
         assertNull(parser.getBigDecimals("foo"));
 
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
