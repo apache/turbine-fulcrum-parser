@@ -82,6 +82,12 @@ public class BaseValueParser
     /** A convenience logger */
     private Logger logger;
 
+    /** String values which would evaluate to Boolean.TRUE */
+    private static String[] trueValues = {"TRUE","T","YES","Y","1","ON"};
+
+    /** String values which would evaluate to Boolean.FALSE */
+    private static String[] falseValues = {"FALSE","F","NO","N","0","OFF"};
+
     /**
      * The character encoding to use when converting to byte arrays
      */
@@ -396,6 +402,57 @@ public class BaseValueParser
     {
         return keySet().toArray();
     }
+    
+    /**
+     * Returns a Boolean object for the given string. If the value
+     * can not be parsed as a boolean, null is returned.
+     * <p>
+     * Valid values for true: true, t, on, 1, yes, y<br>
+     * Valid values for false: false, f, off, 0, no, n<br>
+     * <p>
+     * The string is compared without reguard to case.
+     *
+     * @param string A String with the value.
+     * @return A Boolean.
+     */
+    private Boolean parseBoolean(String string)
+    {
+        Boolean result = null;
+        String value = StringUtils.trim(string);
+        
+        if (StringUtils.isNotEmpty(value))
+        {
+            for (int cnt = 0;
+            cnt < Math.max(trueValues.length, falseValues.length); cnt++)
+            {
+                // Short-cut evaluation or bust!
+                if ((cnt < trueValues.length) &&
+                   value.equalsIgnoreCase(trueValues[cnt]))
+                {
+                    result = Boolean.TRUE;
+                    break;
+                }
+
+                if ((cnt < falseValues.length) &&
+                   value.equalsIgnoreCase(falseValues[cnt]))
+                {
+                    result = Boolean.FALSE;
+                    break;
+                }
+            }
+            
+            if (result == null)
+            {
+                if (getLogger().isWarnEnabled())
+                {
+                    getLogger().warn("Parameter with value of ("
+                            + value + ") could not be converted to a Boolean");
+                }
+            }
+        }
+        
+        return result;
+    }
 
     /**
      * Return a boolean for the given name.  If the name does not
@@ -424,6 +481,29 @@ public class BaseValueParser
     }
 
     /**
+     * Return an array of booleans for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A boolean[].
+     */
+    public boolean[] getBooleans(String name)
+    {
+        boolean[] result = null;
+        String value[] = getParam(name);
+        if (value != null)
+        {
+            result = new boolean[value.length];
+            for (int i = 0; i < value.length; i++)
+            {
+                Boolean bool = parseBoolean(value[i]);
+                result[i] = (bool == null ? false : bool.booleanValue());
+            }
+        }
+        return result;
+    }
+    
+    /**
      * Returns a Boolean object for the given name.  If the parameter
      * does not exist or can not be parsed as a boolean, null is returned.
      * <p>
@@ -437,31 +517,7 @@ public class BaseValueParser
      */
     public Boolean getBooleanObject(String name)
     {
-        Boolean result = null;
-        String value = getString(name);
-
-        if (StringUtils.isNotEmpty(value))
-        {
-            if (value.equals("1") ||
-                    value.equalsIgnoreCase("true") ||
-                    value.equalsIgnoreCase("yes") ||
-                    value.equalsIgnoreCase("on"))
-            {
-                result = Boolean.TRUE;
-            }
-            else if (value.equals("0") ||
-                    value.equalsIgnoreCase("false") ||
-                    value.equalsIgnoreCase("no") ||
-                    value.equalsIgnoreCase("off"))
-            {
-                result = Boolean.FALSE;
-            }
-            else
-            {
-                logConversionFailure(name, value, "Boolean");
-            }
-        }
-        return result;
+        return parseBoolean(getString(name));
     }
 
     /**
@@ -481,6 +537,28 @@ public class BaseValueParser
     {
         Boolean result = getBooleanObject(name);
         return (result == null ? defaultValue : result);
+    }
+
+    /**
+     * Return an array of Booleans for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A Boolean[].
+     */
+    public Boolean[] getBooleanObjects(String name)
+    {
+        Boolean[] result = null;
+        String value[] = getParam(name);
+        if (value != null)
+        {
+            result = new Boolean[value.length];
+            for (int i = 0; i < value.length; i++)
+            {
+                result[i] = parseBoolean(value[i]);
+            }
+        }
+        return result;
     }
 
     /**

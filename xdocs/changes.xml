@@ -25,6 +25,10 @@
 
   <body>
     <release version="1.0.2-dev" date="in SVN">
+    <action type="add" dev="tv">
+        Added getBooleans() and getBooleanObjects() to the ValueParser to provide
+        a "more orthogonal" interface.
+    </action>
     <action type="update" dev="tv">
         Important change: The BaseValueParser now consistently returns null for 
         all get-methods that return an Object, if the parameter name does not exist.
