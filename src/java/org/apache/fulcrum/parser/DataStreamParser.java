@@ -114,6 +114,7 @@ public abstract class DataStreamParser
             }
             catch (ClassCastException e)
             {
+                // ignore
             }
         }
 

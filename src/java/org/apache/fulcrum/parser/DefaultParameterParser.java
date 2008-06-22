@@ -227,7 +227,7 @@ public class DefaultParameterParser
                 else
                 {
                     paramValue = URLDecoder.decode(st.nextToken(), getCharacterEncoding());
-                    if (paramName.length() > 0)
+                    if (paramName != null && paramName.length() > 0)
                     {
                         add(paramName, paramValue);
                     }

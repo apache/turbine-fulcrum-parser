@@ -33,8 +33,6 @@ import java.util.StringTokenizer;
 public class StringValueParser
     extends BaseValueParser
 {
-    public StringValueParser() {}
-
     /**
      * Parses a String using a single delimiter.
      *
@@ -67,7 +65,7 @@ public class StringValueParser
             else
             {
                 pathPart = tok;
-                if (key.length() > 0)
+                if (key != null && key.length() > 0)
                 {
                     add (convert(key), pathPart);
                 }

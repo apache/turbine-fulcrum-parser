@@ -760,8 +760,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "2.2", parser.getString("foo"));
-        assertEquals("Wrong double value", (double) testValue, parser.getDouble("foo"), 0.001);
-        assertEquals("Wrong Double value", (double) testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
+        assertEquals("Wrong double value", testValue, parser.getDouble("foo"), 0.001);
+        assertEquals("Wrong Double value", testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
 
         double [] doubles = parser.getDoubles("foo");
         assertEquals("Wrong Array Size", 1, doubles.length);
@@ -798,8 +798,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "123", parser.getString("foo"));
-        assertEquals("Wrong int value", (int) testValue, parser.getInt("foo"));
-        assertEquals("Wrong Int value", (int) testValue, parser.getIntObject("foo").intValue());
+        assertEquals("Wrong int value", testValue, parser.getInt("foo"));
+        assertEquals("Wrong Int value", testValue, parser.getIntObject("foo").intValue());
 
         int [] ints = parser.getInts("foo");
         assertEquals("Wrong Array Size", 1, ints.length);
@@ -825,8 +825,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "123", parser.getString("foo"));
-        assertEquals("Wrong int value", (int) testValue.intValue(), parser.getInt("foo"));
-        assertEquals("Wrong Int value", (int) testValue.intValue(), parser.getIntObject("foo").intValue());
+        assertEquals("Wrong int value", testValue.intValue(), parser.getInt("foo"));
+        assertEquals("Wrong Int value", testValue.intValue(), parser.getIntObject("foo").intValue());
 
         int [] ints = parser.getInts("foo");
         assertEquals("Wrong Array Size", 1, ints.length);
@@ -852,8 +852,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "9223372036854775807", parser.getString("foo"));
-        assertEquals("Wrong long value", (long) testValue, parser.getLong("foo"));
-        assertEquals("Wrong Long value", (long) testValue, parser.getLongObject("foo").longValue());
+        assertEquals("Wrong long value", testValue, parser.getLong("foo"));
+        assertEquals("Wrong Long value", testValue, parser.getLongObject("foo").longValue());
 
         long [] longs = parser.getLongs("foo");
         assertEquals("Wrong Array Size", 1, longs.length);
