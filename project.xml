@@ -54,12 +54,6 @@
       <url>http://commons.apache.org/lang/</url>
     </dependency>
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.0.4</version>
-      <url>http://commons.apache.org/logging/</url>
-    </dependency>
-    <dependency>
       <groupId>fulcrum</groupId>
       <artifactId>fulcrum-pool</artifactId>
       <version>1.0.3</version>

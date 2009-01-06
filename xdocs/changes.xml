@@ -25,6 +25,9 @@
 
   <body>
     <release version="1.0.2-dev" date="in SVN">
+    <action type="update" dev="tv">
+        Removed the dependency on commons-logging.
+    </action>
     <action type="add" dev="tv">
         Added getBooleans() and getBooleanObjects() to the ValueParser to provide
         a "more orthogonal" interface.

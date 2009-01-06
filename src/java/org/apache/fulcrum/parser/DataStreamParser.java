@@ -31,8 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.avalon.framework.logger.LogEnabled;
+import org.apache.avalon.framework.logger.Logger;
 
 /**
  * DataStreamParser is used to parse a stream with a fixed format and
@@ -57,7 +57,7 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public abstract class DataStreamParser
-    implements Iterator
+    implements Iterator, LogEnabled
 {
     /**
      * The list of column names.
@@ -87,7 +87,7 @@ public abstract class DataStreamParser
     /**
      * Logger to use
      */
-    Log log = LogFactory.getLog(DataStreamParser.class);
+    protected Logger log;
 
     /**
      * Create a new DataStreamParser instance. Requires a Reader to read the
@@ -128,6 +128,16 @@ public abstract class DataStreamParser
      * set up the tokenizing properties.
      */
     protected abstract void initTokenizer(StreamTokenizer tokenizer);
+
+    /**
+     * Provide a logger
+     * 
+     * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
+     */
+    public void enableLogging(Logger logger)
+    {
+        this.log = logger.getChildLogger("DataStreamParser");
+    }
 
     /**
      * Set the list of column names explicitly.
