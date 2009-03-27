@@ -41,7 +41,7 @@
 
   <distributionManagement>
     <site>
-      <id>fulcrum.website</id>
+      <id>apache.website</id>
       <name>Fulcrum Website</name>
       <url>${fulcrum.deployment.protocol}://people.apache.org/www/turbine.apache.org/fulcrum/fulcrum-parser/</url>
     </site>    
