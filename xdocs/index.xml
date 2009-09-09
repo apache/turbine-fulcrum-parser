@@ -42,10 +42,10 @@
       The component uses the following services from the Fulcrum Repository
       <ul>
         <li>
-          <a href="http://turbine.apache.org/fulcrum/pool/">Fulcrum Pool Service</a>
+          <a href="http://turbine.apache.org/fulcrum/fulcrum-pool/">Fulcrum Pool Service</a>
         </li>
         <li>
-          <a href="http://turbine.apache.org/fulcrum/upload/">Fulcrum Upload Service</a>
+          <a href="http://turbine.apache.org/fulcrum/fulcrum-upload/">Fulcrum Upload Service</a>
           (optional)
         </li>
       </ul>
@@ -101,7 +101,7 @@
             will be performed automatically. Otherwise, the request may be parsed manually
             by calling <code>parseUpload(HttpServletRequest)</code>. The default value is
             <code>false</code>. When set to true, the component must have the 
-            <a href="http://turbine.apache.org/fulcrum/upload/">Fulcrum Upload Service</a>
+            <a href="http://turbine.apache.org/fulcrum/fulcrum-upload/">Fulcrum Upload Service</a>
             available to parse the request.
           </td>
         </tr>
