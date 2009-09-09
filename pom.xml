@@ -7,16 +7,16 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>fulcrum-parser</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3-SNAPSHOT</version>
   <name>Fulcrum Parser</name>
   <inceptionYear>2005</inceptionYear>
   <description>Fulcrum Parser Service</description>
   <url>http://turbine.apache.org/fulcrum/fulcrum-parser</url>
 		
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/FULCRUM_PARSER_1_0_2</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/FULCRUM_PARSER_1_0_2</developerConnection>
-    <url>http://svn.apache.org/viewcvs/turbine/fulcrum/tags/FULCRUM_PARSER_1_0_2</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</developerConnection>
+    <url>http://svn.apache.org/viewcvs/turbine/fulcrum/trunk/parser/</url>
   </scm>
 
   <distributionManagement>
