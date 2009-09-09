@@ -59,7 +59,7 @@ public class DefaultCookieParser
 
 {
     /**
-     * The run data to parse.
+     * The servlet request objects to parse.
      */
     private HttpServletRequest request;
     private HttpServletResponse response;
@@ -82,9 +82,9 @@ public class DefaultCookieParser
     }
 
     /**
-     * Gets the parsed RunData.
+     * Gets the servlet request.
      *
-     * @return the parsed RunData object or null.
+     * @return the servlet request object or null.
      */
     public HttpServletRequest getRequest()
     {
@@ -92,10 +92,11 @@ public class DefaultCookieParser
     }
 
     /**
-     * Sets the RunData to be parsed.
+     * Sets the servlet request and response to be parsed.
      * All previous cookies will be cleared.
      *
-     * @param data the RunData object.
+     * @param request the servlet request object.
+     * @param response the servlet response object
      */
     public void setData (HttpServletRequest request,
                          HttpServletResponse response)

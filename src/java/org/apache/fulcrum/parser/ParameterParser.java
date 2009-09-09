@@ -86,7 +86,7 @@ public interface ParameterParser
     /**
      * Gets the uploadData byte[]
      *
-     * @returns uploadData A byte[] with data.
+     * @return uploadData A byte[] with data.
      */
     byte[] getUploadData ();
 

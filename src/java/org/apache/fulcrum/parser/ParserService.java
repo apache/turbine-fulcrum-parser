@@ -79,7 +79,7 @@ public interface ParserService
      * multipart request will be performed automatically by {@link
      * org.apache.fulcrum.parser.ParameterParser}.  Otherwise, an {@link
      * org.apache.turbine.modules.Action} may decide to parse the
-     * request by calling {@link #parseRequest(HttpServletRequest, String)
+     * request by calling {@link #parseUpload(HttpServletRequest)
      * parseRequest} manually.
      */
     boolean AUTOMATIC_DEFAULT = false;
@@ -108,7 +108,7 @@ public interface ParserService
      * @return a new String.
      *
      */
-    String convertAndTrim(String s);
+    String convertAndTrim(String value);
 
     /**
      * A convert method, which trims the string data and applies the 

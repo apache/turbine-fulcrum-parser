@@ -709,7 +709,7 @@ public interface ValueParser
      * @return a new String.
      *
      */
-    String convertAndTrim(String s);
+    String convertAndTrim(String value);
 
     /**
      * A static version of the convert method, which
@@ -718,9 +718,9 @@ public interface ValueParser
      * string so that it does not destroy the value data.
      *
      * @param value A String to be processed.
-     * @return A new String converted to lowercase and trimmed.
+     * @return A new String converted and trimmed.
      */
-    String convertAndTrim(String s, int folding);
+    String convertAndTrim(String value, int folding);
 
     /**
      * Gets the folding value from the ParserService configuration

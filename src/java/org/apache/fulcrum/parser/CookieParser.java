@@ -59,17 +59,18 @@ public interface CookieParser
     static final int AGE_DELETE = 0;
 
     /**
-     * Gets the parsed RunData.
+     * Gets the servlet request.
      *
-     * @return the parsed RunData object or null.
+     * @return the servlet request object or null.
      */
     HttpServletRequest getRequest();
 
     /**
-     * Sets the RunData to be parsed.
+     * Sets the servlet request and response to be parsed.
      * All previous cookies will be cleared.
      *
-     * @param data the RunData object.
+     * @param request the servlet request object.
+     * @param response the servlet response object
      */
     void setData (HttpServletRequest request,
                   HttpServletResponse response);
