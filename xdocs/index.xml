@@ -29,44 +29,94 @@
 
   <section name="Overview">
     <p>
-     This Service functions as a repository for Parser components.
-   </p>
+      This Service functions as a repository for Parser components.
+    </p>
 
     <p>
       It is written
       for use in Turbine but it can be used in any container compatible
       with Avalon's ECM container.
     </p>
+    
+    <p>
+      The component uses the following services from the Fulcrum Repository
+      <ul>
+        <li>
+          <a href="http://turbine.apache.org/fulcrum/pool/">Fulcrum Pool Service</a>
+        </li>
+        <li>
+          <a href="http://turbine.apache.org/fulcrum/upload/">Fulcrum Upload Service</a>
+          (optional)
+        </li>
+      </ul>
+    </p>
   </section>
 
 <section name="Configuration">
-
-    <p>
-      First, here is the role configuration.
-    </p>
-
-    <source>
-    <![CDATA[
+    <subsection name="Role Configuration">
+      <source><![CDATA[
     <role
         name="org.apache.fulcrum.parser.ParserService"
         shorthand="parser"
         default-class="org.apache.fulcrum.parser.DefaultParserService"/>
-    ]]>
-    </source>
+      ]]></source>
+    </subsection>
+    
+    <subsection name="Component Configuration">
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Datatype</th>
+          <th>Cardinality</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td>urlCaseFolding</td>
+          <td>String</td>
+          <td>[0|1]</td>
+          <td>
+            This setting controls how parameter names are to be folded during
+            processing. Valid values are <code>none</code> (no folding), 
+            <code>upper</code> (all names upper case) and <code>lower</code>
+            (all names lower case). The default is <code>none</code>.
+          </td>
+        </tr>
+        <tr>
+          <td>parameterEncoding</td>
+          <td>String</td>
+          <td>[0|1]</td>
+          <td>
+            The parameter encoding to use when converting strings to bytes or
+            vice versa. This encoding is used when no explicit encoding is specified.
+            This must be a valid encoding string for the JVM in use. The default is
+            <code>iso-8859-1</code>.
+          </td>
+        </tr>
+        <tr>
+          <td>automaticUpload</td>
+          <td>boolean</td>
+          <td>[0|1]</td>
+          <td>
+            If set to <code>true</code>, parsing the multipart request for attachments
+            will be performed automatically. Otherwise, the request may be parsed manually
+            by calling <code>parseUpload(HttpServletRequest)</code>. The default value is
+            <code>false</code>. When set to true, the component must have the 
+            <a href="http://turbine.apache.org/fulcrum/upload/">Fulcrum Upload Service</a>
+            available to parse the request.
+          </td>
+        </tr>
+      </table>
+    </subsection>
 
-      <p>
-        And here is the configuration:
-      </p>
-    <source>
-
-    <![CDATA[
+    <subsection name="Component Configuration Example">
+      <source><![CDATA[
     <parser>
+        <urlCaseFolding>lower</urlCaseFolding>
         <parameterEncoding>utf-8</parameterEncoding>
         <automaticUpload>true</automaticUpload>
     </parser>
-    ]]>
-    </source>
-
+      ]]></source>
+    </subsection>
   </section>
 
   <section name="Usage">
@@ -87,7 +137,7 @@
 
     <p>
     Parsers are pooled inside the service. You can use this service to manage any types of
-    parsers, you just need to provide the class you wnat to manage. If the parser class 
+    parsers, you just need to provide the class you want to manage. If the parser class 
     implements LogEnabled it will get an (Avalon) logger injected. If the parser class 
     implements ParserServiceSupport it will get an instance of this service injected. 
     </p>
