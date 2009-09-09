@@ -92,6 +92,7 @@
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>commons-collections</groupId>
@@ -107,17 +108,14 @@
       <groupId>org.apache.fulcrum</groupId>
       <artifactId>fulcrum-upload</artifactId>
       <version>1.0.4</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apache.fulcrum</groupId>
       <artifactId>fulcrum-pool</artifactId>
       <version>1.0.4</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.fulcrum</groupId>
-      <artifactId>fulcrum-factory</artifactId>
-      <version>1.0.4</version>
-    </dependency>
+
     <!-- testing dependencies -->
     <dependency>
       <groupId>org.apache.fulcrum</groupId>
@@ -137,5 +135,26 @@
     <sourceDirectory>${basedir}/src/java</sourceDirectory>
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
   </build>
+
+  <profiles>
+    <profile>
+      <id>rc</id>
+      <distributionManagement>
+        <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
+        <site>
+          <id>apache.website</id>
+          <name>Apache Fulcrum Release Candidate Staging Site</name>
+          <url>${fulcrum.deployment.protocol}://people.apache.org/www/turbine.apache.org/builds/fulcrum/${fulcrum.componentid}/${fulcrum.release.version}/${fulcrum.rc.version}/site</url>
+        </site>
+      </distributionManagement>
+    </profile>
+  </profiles>
+  
+  <properties>
+    <!-- This bits are used for the staging directory -->
+    <fulcrum.release.version>1.0.2</fulcrum.release.version>
+    <fulcrum.rc.version>RC1</fulcrum.rc.version>  
+    <fulcrum.deployment.protocol>scpexe</fulcrum.deployment.protocol>
+  </properties>  
 	
 </project>

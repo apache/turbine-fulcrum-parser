@@ -17,19 +17,11 @@
  specific language governing permissions and limitations
  under the License.
 -->
-
-<!DOCTYPE project [
-<!ENTITY site-nav SYSTEM "../../incl_site_nav.xml">
-]>
-
 <project
   name="Fulcrum Parser"
   href="http://turbine.apache.org/fulcrum/fulcrum-parser/">
 
   <body>
-
-&site-nav;
-
     <menu name="Overview">
       <item name="Main"                 href="/index.html"/>
     </menu>

@@ -1,77 +1,79 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
- Licensed to the Apache Software Foundation (ASF) under one
- or more contributor license agreements.  See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership.  The ASF licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
+    Licensed to the Apache Software Foundation (ASF) under one or
+    more contributor license agreements. See the NOTICE file
+    distributed with this work for additional information regarding
+    copyright ownership. The ASF licenses this file to you under the
+    Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain
+    a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
+    http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+    applicable law or agreed to in writing, software distributed
+    under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions
+    and limitations under the License.
 -->
 <document>
-  <properties>
-    <title>Fulcrum Parser</title>
-    <author email="epugh@opensourceconnections.com">Eric Pugh</author>
-  </properties>
+    <properties>
+        <title>Fulcrum Parser</title>
+        <author email="epugh@opensourceconnections.com">Eric Pugh</author>
+    </properties>
 
-  <body>
-    <release version="1.0.2-dev" date="in SVN">
-    <action type="update" dev="tv">
-        Removed the dependency on commons-logging.
-    </action>
-    <action type="add" dev="tv">
-        Added getBooleans() and getBooleanObjects() to the ValueParser to provide
-        a "more orthogonal" interface.
-    </action>
-    <action type="update" dev="tv">
-        Important change: The BaseValueParser now consistently returns null for 
-        all get-methods that return an Object, if the parameter name does not exist.
-        This changes the behaviour of getBigDecimal which used to return 0 in this 
-        case.
-    </action>
-    <action type="add" dev="tv">
-        Made ValueParser and BaseValueParser locale-aware. Note that the default
-        locale used is always the default value of the JVM which is different from 
-        the previous behaviour where the locale used was sometimes Locale.US (for
-        float, double and BigDecimal) and sometimes the JVM-default (for dates).
-    </action>
-     <action dev="tv" type="update" issue="TRB-39">
-        Totally refactored the component to provide correctly initialized
-        parser objects.
-      </action>
-     <action dev="tv" type="update" issue="TRB-32" due-to="Juergen Hofmann">
-        Port parser fixes of  Turbine 2.3.2 over to the component.
-      </action>
-     <action dev="epugh" type="add">
-        Add javabean get/set for dependent upload service to DefaultParameterParser.
-      </action>
-     <action dev="epugh" type="add">
-        Basic unit test verifying that the default parser starts up.
-      </action>
-     <action dev="epugh" type="add">
-        Change to commons-logger to be more friendly to who ever
-        uses this code.
-      </action>
-     <action dev="epugh" type="add">
-        Removed use of old Log4j Category in favor of Logger.
-      </action>
-     <action dev="epugh" type="add">
-        Make gump friendly.
-      </action>
-     <action dev="epugh" type="add">
-        Initial conversion to Avalon component.
-      </action>
-    </release>
-
-  </body>
+    <body>
+        <release version="1.0.3-SNAPSHOT" date="in SVN">
+        </release>
+        <release version="1.0.2" date="2009-09-09">
+            <action type="update" dev="tv">
+                Removed the dependency on commons-logging.
+            </action>
+            <action type="add" dev="tv">
+                Added getBooleans() and getBooleanObjects() to the ValueParser to provide
+                a "more orthogonal" interface.
+            </action>
+            <action type="update" dev="tv">
+                Important change: The BaseValueParser now consistently returns null for
+                all get-methods that return an Object, if the parameter name does not
+                exist.
+                This changes the behaviour of getBigDecimal which used to return 0 in
+                this case.
+            </action>
+            <action type="add" dev="tv">
+                Made ValueParser and BaseValueParser locale-aware. Note that the default
+                locale used is always the default value of the JVM which
+                is different from the previous behaviour where the locale used was sometimes
+                Locale.US (for float, double and BigDecimal) and sometimes the JVM-default
+                (for dates).
+            </action>
+            <action dev="tv" type="update" issue="TRB-39">
+                Totally refactored the component to provide correctly initialized
+                parser objects.
+            </action>
+            <action dev="tv" type="update" issue="TRB-32" due-to="Jürgen Hofmann">
+                Port parser fixes of Turbine 2.3.2 over to the component.
+            </action>
+            <action dev="epugh" type="add">
+                Add javabean get/set for dependent upload service to
+                DefaultParameterParser.
+            </action>
+            <action dev="epugh" type="add">
+                Basic unit test verifying that the default parser starts up.
+            </action>
+            <action dev="epugh" type="add">
+                Change to commons-logger to be more friendly to who ever
+                uses this code.
+            </action>
+            <action dev="epugh" type="add">
+                Removed use of old Log4j Category in favor of Logger.
+            </action>
+            <action dev="epugh" type="add">
+                Make gump friendly.
+            </action>
+            <action dev="epugh" type="add">
+                Initial conversion to Avalon component.
+            </action>
+        </release>
+    </body>
 </document>
 
