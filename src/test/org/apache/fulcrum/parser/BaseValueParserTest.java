@@ -44,7 +44,7 @@ public class BaseValueParserTest extends BaseUnitTest
 	private BaseValueParser parser;
 
     private ParserService parserService;
-
+    
     /**
      * Performs any initialization that must happen before each test is run.
      * @throws Exception
@@ -625,7 +625,7 @@ public class BaseValueParserTest extends BaseUnitTest
     }
 
 
-    public void getString()
+    public void testGetString()
     {
         // no param
         String result = parser.getString("invalid");
@@ -636,13 +636,13 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals(result, "default");
 
         // null value
-        parser.add("null", "null");
+        parser.add("null", (String) null);
         assertNull( parser.getString("null"));
 
         // only return the first added
         parser.add("multiple", "test");
         parser.add("multiple", "test2");
-        assertEquals("test2", parser.getString("multiple"));
+        assertEquals("test", parser.getString("multiple"));
 
         // array
         parser.add("array", "line1");
@@ -1845,4 +1845,55 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
     }
+
+    public void testBooleanArray() {
+        String[] booleanString = {"on", "off", "false", "true", " ", "justaword"};
+        parser.add("foo", booleanString);
+        boolean[] theArray = parser.getBooleans("foo");
+        
+        assertEquals(6, theArray.length);
+        assertTrue(theArray[0]);
+        assertFalse(theArray[1]);
+        assertFalse(theArray[2]);
+        assertTrue(theArray[3]);
+        assertFalse(theArray[4]);
+        assertFalse(theArray[5]);
+        
+        assertNull(parser.getBooleans("keydontexist"));
+    }
+
+    public void testBooleanObjectArray() {
+        String[] booleanString = {"on", "off", "false", "true", " ", "justaword"};
+        parser.add("foo", booleanString);
+        Boolean[] theArray = parser.getBooleanObjects("foo");
+        
+        assertEquals(6, theArray.length);
+        assertEquals(Boolean.TRUE, theArray[0]);
+        assertEquals(Boolean.FALSE, theArray[1]);
+        assertEquals(Boolean.FALSE, theArray[2]);
+        assertEquals(Boolean.TRUE, theArray[3]);
+        assertEquals(null, theArray[4]);
+        assertEquals(null, theArray[5]);
+        
+        assertNull(parser.getBooleanObjects("keydontexist"));
+    }
+
+    public void testGet() {
+    
+        // no param
+        String result = parser.get("invalid");
+        assertNull(result);
+    
+        // null value
+        parser.add("valid", "value");
+        assertEquals("value", parser.get("valid"));
+    
+        // only return the first added
+        parser.add("multiple", "test");
+        parser.add("multiple", "test2");
+        assertEquals("test", parser.get("multiple"));
+    
+
+    }
+    
 }
