@@ -24,7 +24,6 @@ package org.apache.fulcrum.parser;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -158,13 +157,12 @@ public class DefaultParameterParser
 
             try
             {
-                List fileItems = parserService.parseUpload(request);
+                List<FileItem> fileItems = parserService.parseUpload(request);
 
                 if (fileItems != null)
                 {
-                    for (Iterator it = fileItems.iterator(); it.hasNext();)
+                    for (FileItem fi : fileItems)
                     {
-                        FileItem fi = (FileItem) it.next();
                         if (fi.isFormField())
                         {
                             getLogger().debug("Found an simple form field: " + fi.getFieldName() +", adding value " + fi.getString());
@@ -199,7 +197,7 @@ public class DefaultParameterParser
             }
         }
 
-        for (Enumeration names = request.getParameterNames();
+        for (Enumeration<?> names = request.getParameterNames();
              names.hasMoreElements();)
         {
             String paramName = (String) names.nextElement();
@@ -248,9 +246,8 @@ public class DefaultParameterParser
         if (getLogger().isDebugEnabled())
         {
             getLogger().debug("Parameters found in the Request:");
-            for (Iterator it = keySet().iterator(); it.hasNext();)
+            for (String key : keySet())
             {
-                String key = (String) it.next();
                 getLogger().debug("Key: " + key + " -> " + getString(key));
             }
         }

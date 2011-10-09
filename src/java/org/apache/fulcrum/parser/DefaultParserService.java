@@ -33,6 +33,7 @@ import org.apache.avalon.framework.logger.LogEnabled;
 import org.apache.avalon.framework.service.ServiceException;
 import org.apache.avalon.framework.service.ServiceManager;
 import org.apache.avalon.framework.service.Serviceable;
+import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.lang.StringUtils;
 import org.apache.fulcrum.pool.PoolException;
 import org.apache.fulcrum.pool.PoolService;
@@ -42,7 +43,7 @@ import org.apache.fulcrum.upload.UploadService;
 /**
  * The DefaultParserService provides the efault implementation
  * of a {@link ParserService}.
- * 
+ *
  * @author <a href="mailto:tv@apache.org">Thomas Vandahl</a>
  * @version $Id: BaseValueParser.java 542062 2007-05-28 00:29:43Z seade $
  */
@@ -71,7 +72,7 @@ public class DefaultParserService
      * The pool service component to use
      */
     private PoolService poolService = null;
-    
+
     /**
      * Get the character encoding that will be used by this ValueParser.
      */
@@ -170,15 +171,15 @@ public class DefaultParserService
     }
 
     /**
-     * Use the UploadService if available to parse the given request 
+     * Use the UploadService if available to parse the given request
      * for uploaded files
      *
      * @return A list of {@link org.apache.commons.upload.FileItem}s
-     * 
-     * @throws ServiceException if parsing fails or the UploadService 
+     *
+     * @throws ServiceException if parsing fails or the UploadService
      * is not available
      */
-    public List parseUpload(HttpServletRequest request) throws ServiceException
+    public List<FileItem> parseUpload(HttpServletRequest request) throws ServiceException
     {
         if (uploadService == null)
         {
@@ -189,33 +190,32 @@ public class DefaultParserService
             return uploadService.parseRequest(request);
         }
     }
-    
+
     /**
      * Get a {@link ValueParser} instance from the service. Use the
      * given Class to create the object.
-     * 
+     *
      * @return An object that implements ValueParser
-     * 
+     *
      * @throws InstantiationException if the instance could not be created
      */
-    public ValueParser getParser(Class ppClass) throws InstantiationException
+    public ValueParser getParser(Class<? extends ValueParser> ppClass) throws InstantiationException
     {
         ValueParser vp = null;
-        
+
         try
         {
             vp = (ValueParser) poolService.getInstance(ppClass);
-            
+
             if (vp instanceof ParserServiceSupport)
             {
                 ((ParserServiceSupport)vp).setParserService(this);
             }
-            
+
             if (vp instanceof LogEnabled)
             {
                 ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getName()));
             }
-            
         }
         catch (PoolException pe)
         {
@@ -232,7 +232,7 @@ public class DefaultParserService
     /**
      * Return a used Parser to the service. This allows for
      * pooling and recycling
-     * 
+     *
      * @param parser
      */
     public void putParser(ValueParser parser)

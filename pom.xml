@@ -92,11 +92,6 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-      <version>3.2</version>
-    </dependency>
-    <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>2.4</version>
@@ -148,6 +143,8 @@
   </profiles>
   
   <properties>
+    <maven.compile.source>1.5</maven.compile.source>
+    <maven.compile.target>1.5</maven.compile.target>
     <!-- This bits are used for the staging directory -->
     <fulcrum.release.version>1.0.2</fulcrum.release.version>
     <fulcrum.rc.version>RC1</fulcrum.rc.version>  

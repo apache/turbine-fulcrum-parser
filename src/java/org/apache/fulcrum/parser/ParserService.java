@@ -26,12 +26,13 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.avalon.framework.service.ServiceException;
+import org.apache.commons.fileupload.FileItem;
 
 
 /**
  * ParserService defines the methods which are needed by the parser objects
  * to get their necessities.
- * 
+ *
  * @author <a href="mailto:tv@apache.org">Thomas Vandahl</a>
  * @version $Id: ValueParser.java 535465 2007-05-05 06:58:06Z tv $
  */
@@ -111,17 +112,17 @@ public interface ParserService
     String convertAndTrim(String value);
 
     /**
-     * A convert method, which trims the string data and applies the 
+     * A convert method, which trims the string data and applies the
      * conversion specified in the parameter given. It returns a new
      * string so that it does not destroy the value data.
      *
      * @param value A String to be processed.
-     * @param fold The parameter folding to be applied 
+     * @param fold The parameter folding to be applied
      * (see {@link ParserService})
      * @return A new String converted to the correct case and trimmed.
      */
     String convertAndTrim(String value, int fold);
-    
+
     /**
      * Gets the folding value from the configuration
      *
@@ -137,30 +138,30 @@ public interface ParserService
     boolean getAutomaticUpload();
 
     /**
-     * Use the UploadService if available to parse the given request 
+     * Use the UploadService if available to parse the given request
      * for uploaded files
      *
      * @return A list of {@link org.apache.commons.upload.FileItem}s
-     * 
-     * @throws ServiceException if parsing fails or the UploadService 
+     *
+     * @throws ServiceException if parsing fails or the UploadService
      * is not available
      */
-    List parseUpload(HttpServletRequest request) throws ServiceException;
+    List<FileItem> parseUpload(HttpServletRequest request) throws ServiceException;
 
     /**
      * Get a {@link ValueParser} instance from the service. Use the
-     * default imlementation.
-     * 
+     * default implementation.
+     *
      * @return An object that implements ValueParser
-     * 
+     *
      * @throws InstantiationException if the instance could not be created
      */
-    ValueParser getParser(Class ppClass) throws InstantiationException;
+    ValueParser getParser(Class<? extends ValueParser> ppClass) throws InstantiationException;
 
     /**
      * Return a used Parser to the service. This allows for
      * pooling and recycling
-     * 
+     *
      * @param parser
      */
     void putParser(ValueParser parser);

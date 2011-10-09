@@ -31,13 +31,11 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
 import org.apache.avalon.framework.logger.LogEnabled;
 import org.apache.avalon.framework.logger.Logger;
-import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.fulcrum.pool.Recyclable;
@@ -51,7 +49,7 @@ import org.apache.fulcrum.pool.Recyclable;
  *
  * <p>NOTE: The name= portion of a name=value pair may be converted
  * to lowercase or uppercase when the object is initialized and when
- * new data is added.  This behaviour is determined by the url.case.folding
+ * new data is added.  This behavior is determined by the url.case.folding
  * property in TurbineResources.properties.  Adding a name/value pair may
  * overwrite existing name=value pairs if the names match:
  *
@@ -96,17 +94,17 @@ public class BaseValueParser
     /**
      * Random access storage for parameter data.
      */
-    protected Hashtable parameters = new Hashtable();
+    protected Hashtable<String, Object> parameters = new Hashtable<String, Object>();
 
     /** The locale to use when converting dates, floats and decimals */
     private Locale locale = Locale.getDefault();
-    
+
     /** The DateFormat to use for converting dates */
     private DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, locale);
-    
+
     /** The NumberFormat to use when converting floats and decimals */
     private NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
-    
+
     public BaseValueParser()
     {
         this(DEFAULT_CHARACTER_ENCODING);
@@ -129,14 +127,13 @@ public class BaseValueParser
         recycle(characterEncoding);
         setLocale(locale);
     }
-    
+
     /**
      * Set a ParserService instance
      */
     public void setParserService(ParserService parserService)
     {
         this.parserService = parserService;
-        
     }
 
     /**
@@ -149,14 +146,14 @@ public class BaseValueParser
 
     /**
      * Provide an Avalon logger to the derived classes
-     * 
+     *
      * @return An Avalon logger instance
      */
     protected Logger getLogger()
     {
         return logger;
     }
-    
+
     /**
      * Recycles the parser.
      */
@@ -217,7 +214,7 @@ public class BaseValueParser
         setDateFormat(DateFormat.getDateInstance(DateFormat.SHORT, locale));
         setNumberFormat(NumberFormat.getNumberInstance(locale));
     }
-    
+
     /**
      * Get the locale that will be used by this ValueParser.
      */
@@ -257,7 +254,7 @@ public class BaseValueParser
     {
         return numberFormat;
     }
-    
+
     /**
      * Add a name/value pair into this object.
      *
@@ -388,7 +385,7 @@ public class BaseValueParser
      *
      * @return A <code>Set</code> of the keys.
      */
-    public Set keySet()
+    public Set<String> keySet()
     {
         return parameters.keySet();
     }
@@ -398,11 +395,11 @@ public class BaseValueParser
      *
      * @return A object array with the keys.
      */
-    public Object[] getKeys()
+    public String[] getKeys()
     {
-        return keySet().toArray();
+        return keySet().toArray(new String[0]);
     }
-    
+
     /**
      * Returns a Boolean object for the given string. If the value
      * can not be parsed as a boolean, null is returned.
@@ -419,7 +416,7 @@ public class BaseValueParser
     {
         Boolean result = null;
         String value = StringUtils.trim(string);
-        
+
         if (StringUtils.isNotEmpty(value))
         {
             for (int cnt = 0;
@@ -440,7 +437,7 @@ public class BaseValueParser
                     break;
                 }
             }
-            
+
             if (result == null)
             {
                 if (getLogger().isWarnEnabled())
@@ -450,7 +447,7 @@ public class BaseValueParser
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -502,7 +499,7 @@ public class BaseValueParser
         }
         return result;
     }
-    
+
     /**
      * Returns a Boolean object for the given name.  If the parameter
      * does not exist or can not be parsed as a boolean, null is returned.
@@ -566,7 +563,7 @@ public class BaseValueParser
      *
      * @param string A String with the value.
      * @return A Number.
-     * 
+     *
      */
     private Number parseNumber(String string)
     {
@@ -577,7 +574,7 @@ public class BaseValueParser
         {
             ParsePosition pos = new ParsePosition(0);
             Number number = numberFormat.parse(value, pos);
-            
+
             if (pos.getIndex() == value.length())
             {
                 // completely parsed
@@ -592,7 +589,7 @@ public class BaseValueParser
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -602,7 +599,7 @@ public class BaseValueParser
      *
      * @param name A String with the name.
      * @return A Number.
-     * 
+     *
      */
     private Number getNumber(String name)
     {
@@ -1324,7 +1321,7 @@ public class BaseValueParser
      */
     public void setProperties(Object bean) throws Exception
     {
-        Class beanClass = bean.getClass();
+        Class<?> beanClass = bean.getClass();
         PropertyDescriptor[] props
                 = Introspector.getBeanInfo(beanClass).getPropertyDescriptors();
 
@@ -1349,10 +1346,8 @@ public class BaseValueParser
     public String toString()
     {
         StringBuffer sb = new StringBuffer();
-        for (Iterator iter = keySet().iterator(); iter.hasNext();)
+        for (String name : keySet())
         {
-            String name = (String) iter.next();
-
             sb.append('{');
             sb.append(name);
             sb.append('=');
@@ -1369,14 +1364,7 @@ public class BaseValueParser
             else
             {
                 sb.append('[');
-                for (Iterator it = new ArrayIterator(params); it.hasNext(); )
-                {
-                    sb.append(it.next());
-                    if (it.hasNext())
-                    {
-                        sb.append(", ");
-                    }
-                }
+                sb.append(StringUtils.join(params, ", "));
                 sb.append(']');
             }
             sb.append("}\n");
@@ -1426,60 +1414,60 @@ public class BaseValueParser
                     " is a read only property");
         }
 
-        Class propclass = prop.getPropertyType();
-        Object[] args = {null};
+        Class<?> propclass = prop.getPropertyType();
+        Object arg = null;
 
         if (propclass == String.class)
         {
-            args[0] = getString(prop.getName());
+            arg = getString(prop.getName());
         }
         else if (propclass == Byte.class || propclass == Byte.TYPE)
         {
-            args[0] = getByteObject(prop.getName());
+            arg = getByteObject(prop.getName());
         }
         else if (propclass == Integer.class || propclass == Integer.TYPE)
         {
-            args[0] = getIntObject(prop.getName());
+            arg = getIntObject(prop.getName());
         }
         else if (propclass == Long.class || propclass == Long.TYPE)
         {
-            args[0] = getLongObject(prop.getName());
+            arg = getLongObject(prop.getName());
         }
         else if (propclass == Boolean.class || propclass == Boolean.TYPE)
         {
-            args[0] = getBooleanObject(prop.getName());
+            arg = getBooleanObject(prop.getName());
         }
         else if (propclass == Double.class || propclass == Double.TYPE)
         {
-            args[0] = getDoubleObject(prop.getName());
+            arg = getDoubleObject(prop.getName());
         }
         else if (propclass == Float.class || propclass == Float.TYPE)
         {
-            args[0] = getFloatObject(prop.getName());
+            arg = getFloatObject(prop.getName());
         }
         else if (propclass == BigDecimal.class)
         {
-            args[0] = getBigDecimal(prop.getName());
+            arg = getBigDecimal(prop.getName());
         }
         else if (propclass == String[].class)
         {
-            args[0] = getStrings(prop.getName());
+            arg = getStrings(prop.getName());
         }
         else if (propclass == Object.class)
         {
-            args[0] = getObject(prop.getName());
+            arg = getObject(prop.getName());
         }
         else if (propclass == int[].class)
         {
-            args[0] = getInts(prop.getName());
+            arg = getInts(prop.getName());
         }
         else if (propclass == Integer[].class)
         {
-            args[0] = getIntObjects(prop.getName());
+            arg = getIntObjects(prop.getName());
         }
         else if (propclass == Date.class)
         {
-            args[0] = getDate(prop.getName());
+            arg = getDate(prop.getName());
         }
         else
         {
@@ -1489,7 +1477,7 @@ public class BaseValueParser
                     + propclass.toString());
         }
 
-        setter.invoke(bean, args);
+        setter.invoke(bean, arg);
     }
 
     /**
@@ -1522,7 +1510,7 @@ public class BaseValueParser
     {
         String key = convert(name);
         Object value = parameters.get(key);
-        
+
         // todo sgoeschl 20070405 quick fix for Scott's test case - need to
         // be reworked for proper functioning according to TV
         if(value instanceof String[])
@@ -1582,12 +1570,12 @@ public class BaseValueParser
     }
 
     /**
-     * A convert method, which trims the string data and applies the 
+     * A convert method, which trims the string data and applies the
      * conversion specified in the parameter given. It returns a new
      * string so that it does not destroy the value data.
      *
      * @param value A String to be processed.
-     * @param fold The parameter folding to be applied 
+     * @param fold The parameter folding to be applied
      * (see {@link ParserService})
      * @return A new String converted to the correct case and trimmed.
      */

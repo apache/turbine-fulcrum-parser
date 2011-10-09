@@ -70,7 +70,7 @@ public class CSVParser extends DataStreamParser
      * @param in the input reader.
      * @param columnNames a list of column names.
      */
-    public CSVParser(Reader in, List columnNames)
+    public CSVParser(Reader in, List<String> columnNames)
     {
         super(in, columnNames, null);
     }
@@ -84,7 +84,7 @@ public class CSVParser extends DataStreamParser
      * @param columnNames a list of column names.
      * @param characterEncoding the character encoding of the input.
      */
-    public CSVParser(Reader in, List columnNames, String characterEncoding)
+    public CSVParser(Reader in, List<String> columnNames, String characterEncoding)
     {
         super(in, columnNames, characterEncoding);
     }

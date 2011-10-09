@@ -57,17 +57,17 @@ import org.apache.avalon.framework.logger.Logger;
  * @version $Id$
  */
 public abstract class DataStreamParser
-    implements Iterator, LogEnabled
+    implements Iterator<ValueParser>, LogEnabled
 {
     /**
      * The list of column names.
      */
-    private List            columnNames;
+    private List<String>    columnNames;
 
     /**
      * The stream tokenizer for reading values from the input reader.
      */
-    private StreamTokenizer tokenizer;
+    private final StreamTokenizer tokenizer;
 
     /**
      * The parameter parser holding the values of columns for the current line.
@@ -98,7 +98,7 @@ public abstract class DataStreamParser
      * @param columnNames a list of column names.
      * @param characterEncoding the character encoding of the input.
      */
-    public DataStreamParser(Reader in, List columnNames,
+    public DataStreamParser(Reader in, List<String> columnNames,
             String characterEncoding)
     {
         this.columnNames = columnNames;
@@ -131,7 +131,7 @@ public abstract class DataStreamParser
 
     /**
      * Provide a logger
-     * 
+     *
      * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
      */
     public void enableLogging(Logger logger)
@@ -144,7 +144,7 @@ public abstract class DataStreamParser
      *
      * @param columnNames A list of column names.
      */
-    public void setColumnNames(List columnNames)
+    public void setColumnNames(List<String> columnNames)
     {
         this.columnNames = columnNames;
     }
@@ -158,7 +158,7 @@ public abstract class DataStreamParser
     public void readColumnNames()
         throws IOException
     {
-        columnNames = new ArrayList();
+        columnNames = new ArrayList<String>();
 
         neverRead = false;
         tokenizer.nextToken();
@@ -214,7 +214,7 @@ public abstract class DataStreamParser
             lineValues.clear();
         }
 
-        Iterator it = columnNames.iterator();
+        Iterator<String> it = columnNames.iterator();
         tokenizer.nextToken();
         while (tokenizer.ttype == StreamTokenizer.TT_WORD
                || tokenizer.ttype == '"')
@@ -266,10 +266,10 @@ public abstract class DataStreamParser
      * @exception NoSuchElementException there are no more rows in the input
      *                                   or an IOException occurred.
      */
-    public Object next()
+    public ValueParser next()
         throws NoSuchElementException
     {
-        Object nextRow = null;
+        ValueParser nextRow = null;
 
         try
         {

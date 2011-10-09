@@ -98,7 +98,7 @@ public interface ValueParser
      * Get the number format that will be used by this ValueParser.
      */
     NumberFormat getNumberFormat();
-    
+
     /**
      * Trims the string data and applies the conversion specified in
      * the property given by URL_CASE_FOLDING. It returns a new
@@ -184,14 +184,14 @@ public interface ValueParser
      *
      * @return A <code>Set</code> of the keys.
      */
-    Set keySet();
+    Set<String> keySet();
 
     /**
      * Returns all the available parameter names.
      *
      * @return A object array with the keys.
      */
-    Object[] getKeys();
+    String[] getKeys();
 
     /**
      * Return a boolean for the given name.  If the name does not

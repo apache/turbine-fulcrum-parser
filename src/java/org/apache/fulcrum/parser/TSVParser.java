@@ -71,7 +71,7 @@ public class TSVParser
      * @param in the input reader.
      * @param columnNames a list of column names.
      */
-    public TSVParser(Reader in, List columnNames)
+    public TSVParser(Reader in, List<String> columnNames)
     {
         super(in, columnNames, null);
     }
@@ -85,7 +85,7 @@ public class TSVParser
      * @param columnNames a list of column names.
      * @param characterEncoding the character encoding of the input.
      */
-    public TSVParser(Reader in, List columnNames, String characterEncoding)
+    public TSVParser(Reader in, List<String> columnNames, String characterEncoding)
     {
         super(in, columnNames, characterEncoding);
     }
