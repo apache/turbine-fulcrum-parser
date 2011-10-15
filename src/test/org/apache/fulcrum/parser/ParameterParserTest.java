@@ -68,6 +68,14 @@ public class ParameterParserTest extends BaseUnitTest
     {
         assertTrue(parameterParser.getUrlFolding() == ParserService.URL_CASE_FOLDING_NONE);
     }
+    
+    public void testConfiguredAutomaticUpload() throws Exception {
+        assertTrue(parserService.getAutomaticUpload());
+    }
+    
+    public void testConfiguredParameterEncoding() throws Exception {
+        assertEquals("utf-8", parserService.getParameterEncoding());
+    }
 
     /**
      * Simple test to verify that URL Case Folding works properly

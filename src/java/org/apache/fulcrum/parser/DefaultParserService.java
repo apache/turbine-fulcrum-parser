@@ -279,9 +279,8 @@ public class DefaultParserService
         parameterEncoding = conf.getChild(PARAMETER_ENCODING_KEY)
                             .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();
 
-        automaticUpload = conf.getAttributeAsBoolean(
-                            AUTOMATIC_KEY,
-                            AUTOMATIC_DEFAULT);
+        automaticUpload = conf.getChild(AUTOMATIC_KEY).getValueAsBoolean(AUTOMATIC_DEFAULT);
+                            
     }
 
     // ---------------- Avalon Lifecycle Methods ---------------------
