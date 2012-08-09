@@ -23,6 +23,24 @@
 
     <body>
         <release version="1.0.3-SNAPSHOT" date="in SVN">
+          <action dev="tv" type="add">
+            ValueParser now extends Iterable
+          </action>
+          <action dev="tv" type="update">
+            Use enum for URL case folding
+          </action>
+          <action dev="tv" type="update">
+            Update dependency commons-lang to 2.6
+          </action>
+          <action dev="tv" type="update">
+            Update dependency fulcrum-upload to 1.0.5
+          </action>
+          <action dev="tv" type="update">
+            Use generics
+          </action>
+          <action dev="tv" type="update">
+            Move to JDK 1.5
+          </action>
         </release>
         <release version="1.0.2" date="2009-09-09">
             <action type="update" dev="tv">
