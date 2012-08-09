@@ -34,7 +34,9 @@ import org.apache.avalon.framework.service.ServiceException;
 import org.apache.avalon.framework.service.ServiceManager;
 import org.apache.avalon.framework.service.Serviceable;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.lang.StringUtils;
+import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.pool.PoolException;
 import org.apache.fulcrum.pool.PoolService;
 import org.apache.fulcrum.upload.UploadService;
@@ -53,7 +55,7 @@ public class DefaultParserService
                Configurable, Serviceable
 {
     /** The folding from the configuration */
-    private int folding = URL_CASE_FOLDING_NONE;
+    private URLCaseFolding folding = URLCaseFolding.NONE;
 
     /** The automaticUpload setting from the configuration */
     private boolean automaticUpload = AUTOMATIC_DEFAULT;
@@ -87,7 +89,7 @@ public class DefaultParserService
      * string so that it does not destroy the value data.
      *
      * @param value A String to be processed.
-     * @return A new String converted to lowercase and trimmed.
+     * @return A new String converted to the case as specified by URL_CASE_FOLDING and trimmed.
      */
     public String convert(String value)
     {
@@ -116,7 +118,7 @@ public class DefaultParserService
      * @param value A String to be processed.
      * @return A new String converted to lowercase and trimmed.
      */
-    public String convertAndTrim(String value, int fold)
+    public String convertAndTrim(String value, URLCaseFolding fold)
     {
         if(value == null) return "";
 
@@ -124,18 +126,18 @@ public class DefaultParserService
 
         switch (fold)
         {
-            case URL_CASE_FOLDING_NONE:
+            case NONE:
             {
                 break;
             }
 
-            case URL_CASE_FOLDING_LOWER:
+            case LOWER:
             {
                 tmp = tmp.toLowerCase();
                 break;
             }
 
-            case URL_CASE_FOLDING_UPPER:
+            case UPPER:
             {
                 tmp = tmp.toUpperCase();
                 break;
@@ -155,7 +157,7 @@ public class DefaultParserService
      *
      * @return The current Folding Value
      */
-    public int getUrlFolding()
+    public URLCaseFolding getUrlFolding()
     {
         return folding;
     }
@@ -174,7 +176,7 @@ public class DefaultParserService
      * Use the UploadService if available to parse the given request
      * for uploaded files
      *
-     * @return A list of {@link org.apache.commons.upload.FileItem}s
+     * @return A list of {@link org.apache.commons.fileupload.FileItem}s
      *
      * @throws ServiceException if parsing fails or the UploadService
      * is not available
@@ -188,6 +190,27 @@ public class DefaultParserService
         else
         {
             return uploadService.parseRequest(request);
+        }
+    }
+
+    /**
+     * Use the UploadService if available to parse the given request
+     * for uploaded files using the streaming API
+     *
+     * @return A {@link org.apache.commons.fileupload.FileItemIterator}
+     *
+     * @throws ServiceException if parsing fails or the UploadService
+     * is not available
+     */
+    public FileItemIterator getItemIterator(HttpServletRequest request) throws ServiceException
+    {
+        if (uploadService == null)
+        {
+            throw new ServiceException(ParserService.ROLE, "UploadService is not available.");
+        }
+        else
+        {
+            return uploadService.getItemIterator(request);
         }
     }
 
@@ -246,33 +269,22 @@ public class DefaultParserService
      */
     public void configure(Configuration conf) throws ConfigurationException
     {
-        if (folding == URL_CASE_FOLDING_UNSET)
+        String foldString = conf.getChild(URL_CASE_FOLDING_KEY).getValue(URLCaseFolding.NONE.name()).toLowerCase();
+
+        folding = URLCaseFolding.NONE;
+
+        getLogger().debug("Setting folding from " + foldString);
+
+        if (StringUtils.isNotEmpty(foldString))
         {
-            String foldString = conf.getChild(URL_CASE_FOLDING_KEY).getValue(URL_CASE_FOLDING_NONE_VALUE).toLowerCase();
-
-            folding = URL_CASE_FOLDING_NONE;
-
-            getLogger().debug("Setting folding from " + foldString);
-
-            if (StringUtils.isNotEmpty(foldString))
+            try
             {
-                if (foldString.equals(URL_CASE_FOLDING_NONE_VALUE))
-                {
-                    folding = URL_CASE_FOLDING_NONE;
-                }
-                else if (foldString.equals(URL_CASE_FOLDING_LOWER_VALUE))
-                {
-                    folding = URL_CASE_FOLDING_LOWER;
-                }
-                else if (foldString.equals(URL_CASE_FOLDING_UPPER_VALUE))
-                {
-                    folding = URL_CASE_FOLDING_UPPER;
-                }
-                else
-                {
-                    getLogger().error("Got " + foldString + " from " + URL_CASE_FOLDING_KEY + " property, which is illegal!");
-                    throw new ConfigurationException("Value " + foldString + " is illegal!");
-                }
+                folding = URLCaseFolding.valueOf(foldString.toUpperCase());
+            }
+            catch (IllegalArgumentException e)
+            {
+                getLogger().error("Got " + foldString + " from " + URL_CASE_FOLDING_KEY + " property, which is illegal!");
+                throw new ConfigurationException("Value " + foldString + " is illegal!", e);
             }
         }
 
@@ -280,7 +292,7 @@ public class DefaultParserService
                             .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();
 
         automaticUpload = conf.getChild(AUTOMATIC_KEY).getValueAsBoolean(AUTOMATIC_DEFAULT);
-                            
+
     }
 
     // ---------------- Avalon Lifecycle Methods ---------------------
