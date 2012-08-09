@@ -47,12 +47,27 @@ import java.util.Set;
  * @author <a href="mailto:tv@apache.org">Thomas Vandahl</a>
  * @version $Id$
  */
-public interface ValueParser
+public interface ValueParser extends Iterable<String>
 {
     /**
      * The default character encoding to use when converting to byte arrays
      */
     String DEFAULT_CHARACTER_ENCODING = "US-ASCII";
+
+    /** Possible values for the URL folding setting */
+    enum URLCaseFolding {
+        /** No folding set */
+        UNSET,
+
+        /** No folding */
+        NONE,
+
+        /** Fold to lower case */
+        LOWER,
+
+        /** Fold to upper case */
+        UPPER
+    }
 
     /**
      * Clear all name/value pairs out of this object.
@@ -234,7 +249,7 @@ public interface ValueParser
      * Valid values for true: true, on, 1, yes<br>
      * Valid values for false: false, off, 0, no<br>
      * <p>
-     * The string is compared without reguard to case.
+     * The string is compared without regard to case.
      *
      * @param name A String with the name.
      * @return A Boolean.
@@ -720,13 +735,13 @@ public interface ValueParser
      * @param value A String to be processed.
      * @return A new String converted and trimmed.
      */
-    String convertAndTrim(String value, int folding);
+    String convertAndTrim(String value, URLCaseFolding folding);
 
     /**
      * Gets the folding value from the ParserService configuration
      *
      * @return The current Folding Value
      */
-    int getUrlFolding();
+    URLCaseFolding getUrlFolding();
 }
 

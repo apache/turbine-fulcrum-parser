@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.avalon.framework.service.ServiceException;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 
 
 /**
@@ -49,27 +50,6 @@ public interface ParserService
 
     /** Property for setting the URL folding value */
     String URL_CASE_FOLDING_KEY = "urlCaseFolding";
-
-    /** No folding */
-    String URL_CASE_FOLDING_NONE_VALUE  = "none";
-
-    /** Fold to lower case */
-    String URL_CASE_FOLDING_LOWER_VALUE = "lower";
-
-    /** Fold to upper case */
-    String URL_CASE_FOLDING_UPPER_VALUE = "upper";
-
-    /** No folding set */
-    int URL_CASE_FOLDING_UNSET = 0;
-
-    /** Folding set to "no folding" */
-    int URL_CASE_FOLDING_NONE  = 1;
-
-    /** Folding set to "lowercase" */
-    int URL_CASE_FOLDING_LOWER = 2;
-
-    /** Folding set to "uppercase" */
-    int URL_CASE_FOLDING_UPPER = 3;
 
     /** Parse file upload items automatically */
     String AUTOMATIC_KEY = "automaticUpload";
@@ -121,14 +101,14 @@ public interface ParserService
      * (see {@link ParserService})
      * @return A new String converted to the correct case and trimmed.
      */
-    String convertAndTrim(String value, int fold);
+    String convertAndTrim(String value, URLCaseFolding fold);
 
     /**
      * Gets the folding value from the configuration
      *
      * @return The current Folding Value
      */
-    int getUrlFolding();
+    URLCaseFolding getUrlFolding();
 
     /**
      * Gets the automaticUpload value from the configuration

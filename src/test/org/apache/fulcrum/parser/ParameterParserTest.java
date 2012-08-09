@@ -26,6 +26,7 @@ import org.apache.avalon.framework.component.ComponentException;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.testcontainer.BaseUnitTest;
 /**
  * Basic test that ParameterParser instantiates.
@@ -66,13 +67,13 @@ public class ParameterParserTest extends BaseUnitTest
 
     public void testConfiguredUrlCaseFolding() throws Exception
     {
-        assertTrue(parameterParser.getUrlFolding() == ParserService.URL_CASE_FOLDING_NONE);
+        assertTrue(parameterParser.getUrlFolding() == URLCaseFolding.NONE);
     }
-    
+
     public void testConfiguredAutomaticUpload() throws Exception {
         assertTrue(parserService.getAutomaticUpload());
     }
-    
+
     public void testConfiguredParameterEncoding() throws Exception {
         assertEquals("utf-8", parserService.getParameterEncoding());
     }
@@ -84,9 +85,9 @@ public class ParameterParserTest extends BaseUnitTest
      */
     public void testRepositoryExists() throws Exception
     {
-        assertEquals("TRIMMED_and_Not_Modified",parameterParser.convertAndTrim(" TRIMMED_and_Not_Modified ", ParserService.URL_CASE_FOLDING_NONE));
-        assertEquals("trimmed_and_lower_case",parameterParser.convertAndTrim(" TRIMMED_and_Lower_Case ", ParserService.URL_CASE_FOLDING_LOWER));
-        assertEquals("TRIMMED_AND_UPPER_CASE",parameterParser.convertAndTrim(" TRIMMED_and_Upper_Case ", ParserService.URL_CASE_FOLDING_UPPER));
+        assertEquals("TRIMMED_and_Not_Modified",parameterParser.convertAndTrim(" TRIMMED_and_Not_Modified ", URLCaseFolding.NONE));
+        assertEquals("trimmed_and_lower_case",parameterParser.convertAndTrim(" TRIMMED_and_Lower_Case ", URLCaseFolding.LOWER));
+        assertEquals("TRIMMED_AND_UPPER_CASE",parameterParser.convertAndTrim(" TRIMMED_and_Upper_Case ", URLCaseFolding.UPPER));
     }
 
     /**
@@ -108,10 +109,10 @@ public class ParameterParserTest extends BaseUnitTest
 
         assertEquals("FileItem not found in keySet()!", 1, parameterParser.keySet().size());
 
-        Iterator it = parameterParser.keySet().iterator();
+        Iterator<String> it = parameterParser.keySet().iterator();
         assertTrue(it.hasNext());
 
-        String name = (String) it.next();
+        String name = it.next();
         assertEquals("Wrong name found", "upload-field", name);
 
         assertFalse(it.hasNext());
