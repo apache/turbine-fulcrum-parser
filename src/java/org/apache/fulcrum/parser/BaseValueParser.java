@@ -31,6 +31,7 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
@@ -398,6 +399,16 @@ public class BaseValueParser
     public String[] getKeys()
     {
         return keySet().toArray(new String[0]);
+    }
+
+    /**
+     * Gets an iterator over the set of keys
+     *
+     * @return An <code>Iterator</code> over the keys.
+     */
+    public Iterator<String> iterator()
+    {
+        return parameters.keySet().iterator();
     }
 
     /**
@@ -1579,7 +1590,7 @@ public class BaseValueParser
      * (see {@link ParserService})
      * @return A new String converted to the correct case and trimmed.
      */
-    public String convertAndTrim(String value, int fold)
+    public String convertAndTrim(String value, URLCaseFolding fold)
     {
         return parserService.convertAndTrim(value, fold);
     }
@@ -1589,7 +1600,7 @@ public class BaseValueParser
      *
      * @return The current Folding Value
      */
-    public int getUrlFolding()
+    public URLCaseFolding getUrlFolding()
     {
         return parserService.getUrlFolding();
     }
