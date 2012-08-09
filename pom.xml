@@ -94,12 +94,12 @@
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
+      <version>2.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.fulcrum</groupId>
       <artifactId>fulcrum-upload</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.5</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -146,7 +146,7 @@
     <maven.compile.source>1.5</maven.compile.source>
     <maven.compile.target>1.5</maven.compile.target>
     <!-- This bits are used for the staging directory -->
-    <fulcrum.release.version>1.0.2</fulcrum.release.version>
+    <fulcrum.release.version>1.0.3</fulcrum.release.version>
     <fulcrum.rc.version>RC1</fulcrum.rc.version>  
     <fulcrum.deployment.protocol>scpexe</fulcrum.deployment.protocol>
   </properties>  
