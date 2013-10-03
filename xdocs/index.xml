@@ -125,14 +125,24 @@
     </p>
 
     <source><![CDATA[
-// Get a ValueParser instance
-ValueParser parser = parserService.getParser(BaseValueParser.class);
+ValueParser parser;
 
-parser.add(...);
-Double d = parser.getDoubleObject(...);
+try
+{
+    // Get a ValueParser instance
+    parser = parserService.getParser(BaseValueParser.class);
 
-// Return the instance to the service
-parserService.putParser(parser);
+    parser.add(...);
+    Double d = parser.getDoubleObject(...);
+}
+finally
+{
+    // Return the instance to the service
+    if (parser != null)
+    {
+        parserService.putParser(parser);
+    }
+}
 ]]></source>
 
     <p>
