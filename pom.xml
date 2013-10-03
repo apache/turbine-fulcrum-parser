@@ -17,12 +17,13 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <groupId>org.apache.fulcrum</groupId>
-    <artifactId>fulcrum-parent</artifactId>
-    <version>1</version>
+    <groupId>org.apache.turbine</groupId>
+    <artifactId>turbine-parent</artifactId>
+    <version>3</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.fulcrum</groupId>
   <artifactId>fulcrum-parser</artifactId>
   <version>1.0.3-SNAPSHOT</version>
   <name>Fulcrum Parser</name>
@@ -36,14 +37,6 @@
     <url>http://svn.apache.org/viewcvs/turbine/fulcrum/trunk/parser/</url>
   </scm>
 
-  <distributionManagement>
-    <site>
-      <id>apache.website</id>
-      <name>Fulcrum Website</name>
-      <url>${fulcrum.deployment.protocol}://people.apache.org/www/turbine.apache.org/fulcrum/fulcrum-parser/</url>
-    </site>    
-  </distributionManagement>
-	
   <developers>
     <developer>
       <name>Eric Pugh</name>
@@ -137,25 +130,39 @@
 
   <profiles>
     <profile>
-      <id>rc</id>
-      <distributionManagement>
-        <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
-        <site>
-          <id>apache.website</id>
-          <name>Apache Fulcrum Release Candidate Staging Site</name>
-          <url>${fulcrum.deployment.protocol}://people.apache.org/www/turbine.apache.org/builds/fulcrum/${fulcrum.componentid}/${fulcrum.release.version}/${fulcrum.rc.version}/site</url>
-        </site>
-      </distributionManagement>
+      <id>apache-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- build the source and binary distribution packages -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fulcrum-source-release-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+                  <descriptorRefs>
+                    <descriptorRef>bin</descriptorRef>
+                    <descriptorRef>project</descriptorRef>
+                    <descriptorRef>src</descriptorRef>
+                  </descriptorRefs>
+                  <tarLongFileFormat>gnu</tarLongFileFormat>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
-  
+
   <properties>
-    <maven.compile.source>1.5</maven.compile.source>
-    <maven.compile.target>1.5</maven.compile.target>
-    <!-- This bits are used for the staging directory -->
-    <fulcrum.release.version>1.0.3</fulcrum.release.version>
-    <fulcrum.rc.version>RC1</fulcrum.rc.version>  
-    <fulcrum.deployment.protocol>scpexe</fulcrum.deployment.protocol>
+    <turbine.site.path>fulcrum/fulcrum-parser</turbine.site.path>
   </properties>  
 	
 </project>

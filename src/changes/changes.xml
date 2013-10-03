@@ -22,7 +22,12 @@
     </properties>
 
     <body>
-        <release version="1.0.3-SNAPSHOT" date="in SVN">
+        <release version="1.0.4" date="in SVN">
+        </release>
+        <release version="1.0.3" date="2013-10-03">
+          <action dev="tv" type="update">
+            Derive from Turbine parent POM 3
+          </action>
           <action dev="tv" type="add">
             ValueParser now extends Iterable
           </action>

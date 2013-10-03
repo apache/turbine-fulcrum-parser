@@ -17,9 +17,7 @@
  specific language governing permissions and limitations
  under the License.
 -->
-<project
-  name="Fulcrum Parser"
-  href="http://turbine.apache.org/fulcrum/fulcrum-parser/">
+<project name="Fulcrum Parser">
 
   <body>
     <menu name="Overview">
