@@ -222,13 +222,15 @@ public class DefaultParserService
      *
      * @throws InstantiationException if the instance could not be created
      */
-    public ValueParser getParser(Class<? extends ValueParser> ppClass) throws InstantiationException
+    public <P extends ValueParser> P getParser(Class<P> ppClass) throws InstantiationException
     {
-        ValueParser vp = null;
+        P vp = null;
 
         try
         {
-            vp = (ValueParser) poolService.getInstance(ppClass);
+            @SuppressWarnings("unchecked") // Until PoolService is generified
+            P parserInstance = (P) poolService.getInstance(ppClass);
+            vp = parserInstance;
 
             if (vp instanceof ParserServiceSupport)
             {
@@ -237,7 +239,7 @@ public class DefaultParserService
 
             if (vp instanceof LogEnabled)
             {
-                ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getName()));
+                ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));
             }
         }
         catch (PoolException pe)

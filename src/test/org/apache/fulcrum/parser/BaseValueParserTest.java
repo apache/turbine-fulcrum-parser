@@ -44,7 +44,7 @@ public class BaseValueParserTest extends BaseUnitTest
 	private BaseValueParser parser;
 
     private ParserService parserService;
-    
+
     /**
      * Performs any initialization that must happen before each test is run.
      * @throws Exception
@@ -55,7 +55,7 @@ public class BaseValueParserTest extends BaseUnitTest
         try
         {
             parserService = (ParserService)this.lookup(ParserService.ROLE);
-            parser = (BaseValueParser) parserService.getParser(BaseValueParser.class);
+            parser = parserService.getParser(BaseValueParser.class);
         }
         catch (ComponentException e)
         {
@@ -72,7 +72,7 @@ public class BaseValueParserTest extends BaseUnitTest
         parserService.putParser(parser);
         this.release(parserService);
     }
-    
+
     public void testDate()
     {
         parser.clear();
@@ -81,7 +81,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
 
         parser.add("foo", "03/21/2008");
-        
+
         Calendar cal = Calendar.getInstance(Locale.US);
         cal.clear();
         cal.set(2008, 2, 21, 0, 0, 0);
@@ -92,7 +92,7 @@ public class BaseValueParserTest extends BaseUnitTest
         parser.setLocale(Locale.GERMANY);
 
         parser.add("foo", "21.03.2008");
-        
+
         cal = Calendar.getInstance(Locale.GERMANY);
         cal.clear();
         cal.set(2008, 2, 21, 0, 0, 0);
@@ -669,7 +669,7 @@ public class BaseValueParserTest extends BaseUnitTest
     {
         try
         {
-            BaseValueParser vp = (BaseValueParser) parserService.getParser(BaseValueParser.class);
+            BaseValueParser vp = parserService.getParser(BaseValueParser.class);
             assertFalse(vp.isDisposed());
             parserService.putParser(vp);
         }
@@ -775,11 +775,11 @@ public class BaseValueParserTest extends BaseUnitTest
 
         parser.clear();
         parser.setLocale(Locale.GERMANY);
-        
+
         String testDouble = "2,3";
         parser.add("foo", testDouble);
         assertEquals("Wrong double value", 2.3, parser.getDouble("foo"), 0.001);
-        
+
         parser.add("unparsable2", "1a");
         Double result = parser.getDoubleObject("unparsable2");
         assertNull("Double object should be null", result);
@@ -906,8 +906,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "123", parser.getString("foo"));
-        assertEquals("Wrong long value", (long) testValue, parser.getLong("foo"));
-        assertEquals("Wrong Long value", (long) testValue, parser.getLongObject("foo").longValue());
+        assertEquals("Wrong long value", testValue, parser.getLong("foo"));
+        assertEquals("Wrong Long value", testValue, parser.getLongObject("foo").longValue());
 
         long [] longs = parser.getLongs("foo");
         assertEquals("Wrong Array Size", 1, longs.length);
@@ -933,8 +933,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "123", parser.getString("foo"));
-        assertEquals("Wrong double value", (double) testValue, parser.getDouble("foo"), 0.001);
-        assertEquals("Wrong Double value", (double) testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
+        assertEquals("Wrong double value", testValue, parser.getDouble("foo"), 0.001);
+        assertEquals("Wrong Double value", testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
 
         double [] doubles = parser.getDoubles("foo");
         assertEquals("Wrong Array Size", 1, doubles.length);
@@ -960,8 +960,8 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
         assertEquals("Wrong string value", "9223372036854775807", parser.getString("foo"));
-        assertEquals("Wrong double value", (double) testValue, parser.getDouble("foo"), 0.001);
-        assertEquals("Wrong Double value", (double) testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
+        assertEquals("Wrong double value", testValue, parser.getDouble("foo"), 0.001);
+        assertEquals("Wrong Double value", testValue, parser.getDoubleObject("foo").doubleValue(), 0.001);
 
         double [] doubles = parser.getDoubles("foo");
         assertEquals("Wrong Array Size", 1, doubles.length);
@@ -1850,7 +1850,7 @@ public class BaseValueParserTest extends BaseUnitTest
         String[] booleanString = {"on", "off", "false", "true", " ", "justaword"};
         parser.add("foo", booleanString);
         boolean[] theArray = parser.getBooleans("foo");
-        
+
         assertEquals(6, theArray.length);
         assertTrue(theArray[0]);
         assertFalse(theArray[1]);
@@ -1858,7 +1858,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertTrue(theArray[3]);
         assertFalse(theArray[4]);
         assertFalse(theArray[5]);
-        
+
         assertNull(parser.getBooleans("keydontexist"));
     }
 
@@ -1866,7 +1866,7 @@ public class BaseValueParserTest extends BaseUnitTest
         String[] booleanString = {"on", "off", "false", "true", " ", "justaword"};
         parser.add("foo", booleanString);
         Boolean[] theArray = parser.getBooleanObjects("foo");
-        
+
         assertEquals(6, theArray.length);
         assertEquals(Boolean.TRUE, theArray[0]);
         assertEquals(Boolean.FALSE, theArray[1]);
@@ -1874,26 +1874,26 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals(Boolean.TRUE, theArray[3]);
         assertEquals(null, theArray[4]);
         assertEquals(null, theArray[5]);
-        
+
         assertNull(parser.getBooleanObjects("keydontexist"));
     }
 
     public void testGet() {
-    
+
         // no param
         String result = parser.get("invalid");
         assertNull(result);
-    
+
         // null value
         parser.add("valid", "value");
         assertEquals("value", parser.get("valid"));
-    
+
         // only return the first added
         parser.add("multiple", "test");
         parser.add("multiple", "test2");
         assertEquals("test", parser.get("multiple"));
-    
+
 
     }
-    
+
 }

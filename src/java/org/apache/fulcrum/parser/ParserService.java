@@ -136,7 +136,7 @@ public interface ParserService
      *
      * @throws InstantiationException if the instance could not be created
      */
-    ValueParser getParser(Class<? extends ValueParser> ppClass) throws InstantiationException;
+    <P extends ValueParser> P getParser(Class<P> ppClass) throws InstantiationException;
 
     /**
      * Return a used Parser to the service. This allows for

@@ -56,7 +56,7 @@ public class ParameterParserTest extends BaseUnitTest
         try
         {
             parserService = (ParserService)this.lookup(ParserService.ROLE);
-            parameterParser = (ParameterParser) parserService.getParser(DefaultParameterParser.class);
+            parameterParser = parserService.getParser(DefaultParameterParser.class);
         }
         catch (ComponentException e)
         {

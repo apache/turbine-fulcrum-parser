@@ -125,15 +125,15 @@
     </p>
 
     <source><![CDATA[
-    // Get a ValueParser instance
-    ValueParser parser = (ValueParser) parserService.getParser(BaseValueParser.class);
+// Get a ValueParser instance
+ValueParser parser = parserService.getParser(BaseValueParser.class);
 
-    parser.add(...);
-    Double d = parser.getDoubleObject(...);
-    
-    // Return the instance to the service
-    parserService.putParser(parser);
-    ]]></source>
+parser.add(...);
+Double d = parser.getDoubleObject(...);
+
+// Return the instance to the service
+parserService.putParser(parser);
+]]></source>
 
     <p>
     Parsers are pooled inside the service. You can use this service to manage any types of
