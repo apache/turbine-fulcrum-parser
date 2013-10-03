@@ -26,9 +26,9 @@
   <groupId>org.apache.fulcrum</groupId>
   <artifactId>fulcrum-parser</artifactId>
   <version>1.0.3-SNAPSHOT</version>
-  <name>Fulcrum Parser</name>
+  <name>Fulcrum Parser Service</name>
   <inceptionYear>2005</inceptionYear>
-  <description>Fulcrum Parser Service</description>
+  <description>This Service functions as a repository for Parser components.</description>
   <url>http://turbine.apache.org/fulcrum/fulcrum-parser</url>
 		
   <scm>
