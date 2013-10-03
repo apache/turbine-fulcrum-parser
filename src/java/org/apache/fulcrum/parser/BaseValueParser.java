@@ -922,7 +922,7 @@ public class BaseValueParser
     public Integer getIntObject(String name, Integer defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : new Integer(result.intValue()));
+        return ((result == null || result instanceof Double) ? defaultValue : Integer.valueOf(result.intValue()));
     }
 
     /**
@@ -954,7 +954,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = ((number == null || number instanceof Double) ? null : new Integer(number.intValue()));
+                result[i] = ((number == null || number instanceof Double) ? null : Integer.valueOf(number.intValue()));
             }
         }
         return result;
@@ -1026,7 +1026,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = ((number == null || number instanceof Double) ? null : new Long(number.longValue()));
+                result[i] = ((number == null || number instanceof Double) ? null : Long.valueOf(number.longValue()));
             }
         }
         return result;
@@ -1055,7 +1055,7 @@ public class BaseValueParser
     public Long getLongObject(String name, Long defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : new Long(result.longValue()));
+        return ((result == null || result instanceof Double) ? defaultValue : Long.valueOf(result.longValue()));
     }
 
     /**
@@ -1116,7 +1116,7 @@ public class BaseValueParser
     public Byte getByteObject(String name, Byte defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : new Byte(result.byteValue()));
+        return ((result == null || result instanceof Double) ? defaultValue : Byte.valueOf(result.byteValue()));
     }
 
     /**
