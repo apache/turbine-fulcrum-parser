@@ -55,11 +55,11 @@
 <section name="Configuration">
     <subsection name="Role Configuration">
       <source><![CDATA[
-    <role
-        name="org.apache.fulcrum.parser.ParserService"
-        shorthand="parser"
-        default-class="org.apache.fulcrum.parser.DefaultParserService"/>
-      ]]></source>
+<role
+    name="org.apache.fulcrum.parser.ParserService"
+    shorthand="parser"
+    default-class="org.apache.fulcrum.parser.DefaultParserService"/>
+]]></source>
     </subsection>
     
     <subsection name="Component Configuration">
@@ -110,12 +110,12 @@
 
     <subsection name="Component Configuration Example">
       <source><![CDATA[
-    <parser>
-        <urlCaseFolding>lower</urlCaseFolding>
-        <parameterEncoding>utf-8</parameterEncoding>
-        <automaticUpload>true</automaticUpload>
-    </parser>
-      ]]></source>
+<parser>
+    <urlCaseFolding>lower</urlCaseFolding>
+    <parameterEncoding>utf-8</parameterEncoding>
+    <automaticUpload>true</automaticUpload>
+</parser>
+]]></source>
     </subsection>
   </section>
 
