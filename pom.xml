@@ -34,7 +34,7 @@
   <scm>
     <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</connection>
     <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</developerConnection>
-    <url>http://svn.apache.org/viewcvs/turbine/fulcrum/trunk/parser/</url>
+    <url>http://svn.apache.org/viewvc/turbine/fulcrum/trunk/parser/</url>
   </scm>
 
   <developers>
