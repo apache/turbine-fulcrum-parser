@@ -1,6 +1,13 @@
 package org.apache.fulcrum.parser;
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,7 +33,10 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import org.apache.avalon.framework.component.ComponentException;
-import org.apache.fulcrum.testcontainer.BaseUnitTest;
+import org.apache.fulcrum.testcontainer.BaseUnit4Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Testing of the BaseValueParser class
@@ -34,12 +44,8 @@ import org.apache.fulcrum.testcontainer.BaseUnitTest;
  * @author <a href="mailto:quintonm@bellsouth.net">Quinton McCombs</a>
  * @version $Id: BaseValueParserTest.java 222043 2004-12-06 17:47:33Z painter $
  */
-public class BaseValueParserTest extends BaseUnitTest
+public class BaseValueParserTest extends BaseUnit4Test
 {
-    public BaseValueParserTest(String name)
-    {
-		super(name);
-	}
 
 	private BaseValueParser parser;
 
@@ -49,9 +55,9 @@ public class BaseValueParserTest extends BaseUnitTest
      * Performs any initialization that must happen before each test is run.
      * @throws Exception
      */
-    protected void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
     {
-        super.setUp();
         try
         {
             parserService = (ParserService)this.lookup(ParserService.ROLE);
@@ -67,12 +73,13 @@ public class BaseValueParserTest extends BaseUnitTest
     /**
      * Clean up after each test is run.
      */
-    protected void tearDown()
+    @After
+    public void tearDown()
     {
         parserService.putParser(parser);
         this.release(parserService);
     }
-
+    @Test
     public void testDate()
     {
         parser.clear();
@@ -99,7 +106,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Date value (German)", cal.getTime(), parser.getDate("foo"));
     }
-
+    @Test
     public void testGetByte()
     {
         // no param
@@ -120,7 +127,7 @@ public class BaseValueParserTest extends BaseUnitTest
         result = parser.getByte("unparsable");
         assertEquals(result, 0);
     }
-
+    @Test
     public void testGetByteObject()
     {
         // no param
@@ -141,7 +148,7 @@ public class BaseValueParserTest extends BaseUnitTest
         result = parser.getByteObject("unparsable");
         assertNull(result);
     }
-
+    @Test
     public void testGetInt()
     {
         // no param
@@ -186,7 +193,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i] );
         }
     }
-
+    @Test
     public void testGetIntObject()
     {
         // no param
@@ -231,7 +238,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i] );
         }
     }
-
+    @Test
     public void testGetFloat()
     {
         // no param
@@ -276,7 +283,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i], 0);
         }
     }
-
+    @Test
     public void testGetFloatObject()
     {
         // no param
@@ -321,7 +328,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i] );
         }
     }
-
+    @Test
     public void testGetDouble()
     {
         // no param
@@ -366,7 +373,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i], 0);
         }
     }
-
+    @Test
     public void testGetDoubleObject()
     {
         // no param
@@ -411,7 +418,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i] );
         }
     }
-
+    @Test
     public void testGetLong()
     {
         // no param
@@ -456,7 +463,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i]);
         }
     }
-
+    @Test
     public void testGetLongObject()
     {
         // no param
@@ -501,7 +508,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals(compare2[i], arrayResult2[i] );
         }
     }
-
+    @Test
     public void testGetBoolean()
     {
         // no param
@@ -532,7 +539,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals(result, false);
 
     }
-
+    @Test
     public void testGetBooleanObject()
     {
         // no param
@@ -577,12 +584,12 @@ public class BaseValueParserTest extends BaseUnitTest
         result = parser.getBooleanObject("unparsable");
         assertNull(result);
     }
-
-    public void OFFtestGetBigDecimal()
+    @Test
+    public void testGetBigDecimal()
     {
         // no param
         BigDecimal result = parser.getBigDecimal("invalid");
-        assertEquals(new BigDecimal(0), result);
+        assertNull(result); // object returns NOT new BigDecimal(0)
 
         // default
         result = parser.getBigDecimal("default", new BigDecimal(3));
@@ -596,7 +603,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // unparsable value
         parser.add("unparsable", "a");
         result = parser.getBigDecimal("unparsable");
-        assertEquals(new BigDecimal(0), result);
+        assertNull(result); //assertEquals(new BigDecimal(0), result);
 
         // array
         parser.add("array", "1");
@@ -624,7 +631,7 @@ public class BaseValueParserTest extends BaseUnitTest
         }
     }
 
-
+    @Test
     public void testGetString()
     {
         // no param
@@ -657,14 +664,14 @@ public class BaseValueParserTest extends BaseUnitTest
         }
 
     }
-
+    @Test
     public void testRecycling() throws Exception {
     		parser.setCharacterEncoding("fake");
     		parser.recycle();
     		assertEquals("US-ASCII",parser.getCharacterEncoding());
     }
 
-
+    @Test
     public void testSetup()
     {
         try
@@ -698,7 +705,7 @@ public class BaseValueParserTest extends BaseUnitTest
 //
 //        assertEquals("Wrong Character Encoding", encoding, vp.getCharacterEncoding());
 //    }
-
+    @Test
     public void testClear()
     {
         parser.clear();
@@ -714,6 +721,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
     }
 
+    @Test
     public void testDispose()
     {
         parser.clear();
@@ -730,7 +738,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertTrue(parser.isDisposed());
     }
-
+    @Test
     public void testKeyArray()
     {
         parser.clear();
@@ -784,7 +792,7 @@ public class BaseValueParserTest extends BaseUnitTest
         Double result = parser.getDoubleObject("unparsable2");
         assertNull("Double object should be null", result);
     }
-
+    @Test
     public void testIntAdd()
     {
         parser.clear();
@@ -811,7 +819,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Int array value", testValue, intObjs[0].intValue());
     }
-
+    @Test
     public void testIntegerAdd()
     {
         parser.clear();
@@ -838,7 +846,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Int array value", testValue.intValue(), intObjs[0].intValue());
     }
-
+    @Test
     public void testLongAdd()
     {
         parser.clear();
@@ -865,7 +873,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Long array value", testValue, longObjs[0].longValue());
     }
-
+    @Test
     public void testLongToInt()
     {
         parser.clear();
@@ -919,7 +927,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Long array value", testValue, longObjs[0].longValue());
     }
-
+    @Test
     public void testIntToDouble()
     {
         parser.clear();
@@ -946,7 +954,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Double array value", testValue, doubleObjs[0].doubleValue(), 0.001);
     }
-
+    @Test
     public void testLongToDouble()
     {
         parser.clear();
@@ -1049,7 +1057,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertEquals("Wrong Long array value", Long.valueOf(testValue).longValue(), longObjs[0].longValue());
     }
-
+    @Test
     public void testStringArray()
     {
         parser.clear();
@@ -1091,7 +1099,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // should append at the end.
         assertEquals("Wrong element returned", testValue[0], parser.getString("foo"));
     }
-
+    @Test
     public void testRemove()
     {
         parser.clear();
@@ -1118,7 +1126,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // Test removing null value
         assertNull(parser.remove(null));
     }
-
+    @Test
     public void testRemoveArray()
     {
         parser.clear();
@@ -1152,7 +1160,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertNull(parser.getString("foo"));
     }
-
+    @Test
     public void testContainsKey()
     {
         parser.clear();
@@ -1164,7 +1172,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertTrue(parser.containsKey("bar"));
         assertFalse(parser.containsKey("baz"));
     }
-
+    @Test
     public void testBooleanObject()
     {
         parser.clear();
@@ -1205,7 +1213,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertNull(parser.getBooleanObject("does-not-exist"));
     }
-
+    @Test
     public void testBoolDefault()
     {
         parser.clear();
@@ -1224,7 +1232,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertFalse(parser.getBoolean("does not exist", false));
         assertTrue(parser.getBoolean("does not exist", true));
     }
-
+    @Test
     public void testBooleanDefault()
     {
         parser.clear();
@@ -1244,7 +1252,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertNull(parser.getBooleanObject("does not exist", null));
     }
-
+    @Test
     public void testDoubleArray()
     {
         parser.clear();
@@ -1312,7 +1320,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // should append at the end.
         assertEquals("Wrong element returned", testValue[0], parser.getDouble("foo"), 0.001);
     }
-
+    @Test
     public void testFloatArray()
     {
         parser.clear();
@@ -1380,7 +1388,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // should append at the end.
         assertEquals("Wrong element returned", testValue[0], parser.getFloat("foo"), 0.001f);
     }
-
+    @Test
     public void testBigDecimalArray()
     {
         parser.clear();
@@ -1428,7 +1436,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // should append at the end.
         assertEquals("Wrong element returned", testValue[0], parser.getBigDecimal("foo").longValue());
     }
-
+    @Test
     public void testIntegerArray()
     {
         parser.clear();
@@ -1496,7 +1504,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // should append at the end.
         assertEquals("Wrong element returned", testValue[0], parser.getInt("foo"));
     }
-
+    @Test
     public void testLongArray()
     {
         parser.clear();
@@ -1564,7 +1572,7 @@ public class BaseValueParserTest extends BaseUnitTest
         // should append at the end.
         assertEquals("Wrong element returned", testValue[0], parser.getLong("foo"));
     }
-
+    @Test
     public void testByteArray()
             throws Exception
     {
@@ -1589,7 +1597,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals("Wrong value", res[i], testByte[0]);
         }
     }
-
+    @Test
     public void testByte()
     {
         parser.clear();
@@ -1624,7 +1632,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong value", new Byte((byte) 100),  parser.getByteObject("foo5"));
 
     }
-
+    @Test
     public void testStringDefault()
     {
         parser.clear();
@@ -1639,7 +1647,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong value found", "baz", parser.getString("does-not-exist", "baz"));
         assertNull(parser.getString("does-not-exist", null));
     }
-
+    @Test
     public void testSetString()
     {
         parser.clear();
@@ -1671,7 +1679,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of values", 1, res.length);
         assertEquals("Wrong value found", "xxx", res[0]);
     }
-
+    @Test
     public void testSetStrings()
     {
         parser.clear();
@@ -1709,7 +1717,7 @@ public class BaseValueParserTest extends BaseUnitTest
             assertEquals("Wrong value found", newValues[i], res[i]);
         }
     }
-
+    @Test
     public void testSetProperties()
             throws Exception
     {
@@ -1753,7 +1761,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
 
     }
-
+    @Test
     public void testAddNullArrays()
     {
         String [] res = null;
@@ -1797,7 +1805,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 1, parser.keySet().size());
         assertEquals("Wrong number of values", 4, res.length);
     }
-
+    @Test
     public void testNonExistingResults()
     {
         parser.clear();
@@ -1846,6 +1854,7 @@ public class BaseValueParserTest extends BaseUnitTest
         assertEquals("Wrong number of keys", 0, parser.keySet().size());
     }
 
+    @Test
     public void testBooleanArray() {
         String[] booleanString = {"on", "off", "false", "true", " ", "justaword"};
         parser.add("foo", booleanString);
@@ -1861,7 +1870,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertNull(parser.getBooleans("keydontexist"));
     }
-
+    @Test
     public void testBooleanObjectArray() {
         String[] booleanString = {"on", "off", "false", "true", " ", "justaword"};
         parser.add("foo", booleanString);
@@ -1877,7 +1886,7 @@ public class BaseValueParserTest extends BaseUnitTest
 
         assertNull(parser.getBooleanObjects("keydontexist"));
     }
-
+    @Test
     public void testGet() {
 
         // no param

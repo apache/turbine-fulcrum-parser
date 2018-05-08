@@ -1,5 +1,11 @@
 package org.apache.fulcrum.parser;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,32 +33,24 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
-import org.apache.fulcrum.testcontainer.BaseUnitTest;
+import org.apache.fulcrum.testcontainer.BaseUnit4Test;
+import org.junit.Before;
+import org.junit.Test;
 /**
  * Basic test that ParameterParser instantiates.
  *
  * @author <a href="epugh@opensourceconnections.com">Eric Pugh</a>
  * @version $Id$
  */
-public class ParameterParserTest extends BaseUnitTest
+public class ParameterParserTest extends BaseUnit4Test
 {
     private ParameterParser parameterParser = null;
 
     private ParserService parserService;
 
-    /**
-     * Defines the testcase name for JUnit.
-     *
-     * @param name the testcase's name.
-     */
-    public ParameterParserTest(String name)
+    @Before
+    public void setUpBefore() throws Exception
     {
-        super(name);
-    }
-
-    protected void setUp() throws Exception
-    {
-        super.setUp();
         try
         {
             parserService = (ParserService)this.lookup(ParserService.ROLE);
@@ -64,25 +62,27 @@ public class ParameterParserTest extends BaseUnitTest
             fail(e.getMessage());
         }
     }
-
+    
+    @Test
     public void testConfiguredUrlCaseFolding() throws Exception
     {
         assertTrue(parameterParser.getUrlFolding() == URLCaseFolding.NONE);
     }
-
+    @Test
     public void testConfiguredAutomaticUpload() throws Exception {
         assertTrue(parserService.getAutomaticUpload());
     }
-
+    @Test
     public void testConfiguredParameterEncoding() throws Exception {
         assertEquals("utf-8", parserService.getParameterEncoding());
     }
-
+    
     /**
      * Simple test to verify that URL Case Folding works properly
      *
      * @throws Exception
      */
+    @Test
     public void testRepositoryExists() throws Exception
     {
         assertEquals("TRIMMED_and_Not_Modified",parameterParser.convertAndTrim(" TRIMMED_and_Not_Modified ", URLCaseFolding.NONE));
@@ -97,6 +97,7 @@ public class ParameterParserTest extends BaseUnitTest
      *
      * @throws Exception
      */
+    @Test
     public void testAddPathInfo() throws Exception
     {
         FileItemFactory factory = new DiskFileItemFactory(10240, null);
