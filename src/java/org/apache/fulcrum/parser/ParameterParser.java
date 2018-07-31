@@ -1,6 +1,5 @@
 package org.apache.fulcrum.parser;
 
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,10 +19,8 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
-
 import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.fileupload.FileItem;
+import javax.servlet.http.Part;
 
 /**
  * ParameterParser is an interface to a utility to handle parsing and
@@ -88,37 +85,36 @@ public interface ParameterParser
      *
      * @return uploadData A byte[] with data.
      */
-    byte[] getUploadData ();
+    byte[] getUploadData();
 
 
     /**
-     * Add a FileItem object as a parameters.  If there are any
-     * FileItems already associated with the name, append to the
+     * Add a Part object as a parameters.  If there are any
+     * Parts already associated with the name, append to the
      * array.  The reason for this is that RFC 1867 allows multiple
      * files to be associated with single HTML input element.
      *
      * @param name A String with the name.
-     * @param value A FileItem with the value.
+     * @param value A Part with the value.
      */
-    void append( String name, FileItem value );
-
+    void add( String name, Part value );
 
     /**
-     * Return a FileItem object for the given name.  If the name does
-     * not exist or the object stored is not a FileItem, return null.
+     * Return a Part object for the given name.  If the name does
+     * not exist or the object stored is not a Part, return null.
      *
      * @param name A String with the name.
-     * @return A FileItem.
+     * @return A Part.
      */
-    FileItem getFileItem(String name);
+    Part getPart(String name);
 
     /**
-     * Return an array of FileItem objects for the given name.  If the
-     * name does not exist or the object stored is not a FileItem
+     * Return an array of Part objects for the given name.  If the
+     * name does not exist or the object stored is not a Part
      * array, return null.
      *
      * @param name A String with the name.
-     * @return A FileItem[].
+     * @return A Part[].
      */
-    FileItem[] getFileItems(String name);
+    Part[] getParts(String name);
 }

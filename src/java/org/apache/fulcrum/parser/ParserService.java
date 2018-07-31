@@ -1,6 +1,5 @@
 package org.apache.fulcrum.parser;
 
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,15 +19,13 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
-
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 
 import org.apache.avalon.framework.service.ServiceException;
-import org.apache.commons.fileupload.FileItem;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
-
 
 /**
  * ParserService defines the methods which are needed by the parser objects
@@ -118,15 +115,13 @@ public interface ParserService
     boolean getAutomaticUpload();
 
     /**
-     * Use the UploadService if available to parse the given request
-     * for uploaded files
+     * Parse the given request for uploaded files
      *
-     * @return A list of {@link org.apache.commons.upload.FileItem}s
+     * @return A list of {@link javax.servlet.http.Part}s
      *
-     * @throws ServiceException if parsing fails or the UploadService
-     * is not available
+     * @throws ServiceException if parsing fails
      */
-    List<FileItem> parseUpload(HttpServletRequest request) throws ServiceException;
+    List<Part> parseUpload(HttpServletRequest request) throws ServiceException;
 
     /**
      * Get a {@link ValueParser} instance from the service. Use the

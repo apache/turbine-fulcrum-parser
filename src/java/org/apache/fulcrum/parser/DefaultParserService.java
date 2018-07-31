@@ -1,6 +1,5 @@
 package org.apache.fulcrum.parser;
 
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,10 +19,13 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
-
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 
 import org.apache.avalon.framework.configuration.Configurable;
 import org.apache.avalon.framework.configuration.Configuration;
@@ -33,13 +35,10 @@ import org.apache.avalon.framework.logger.LogEnabled;
 import org.apache.avalon.framework.service.ServiceException;
 import org.apache.avalon.framework.service.ServiceManager;
 import org.apache.avalon.framework.service.Serviceable;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.pool.PoolException;
 import org.apache.fulcrum.pool.PoolService;
-import org.apache.fulcrum.upload.UploadService;
 
 
 /**
@@ -66,11 +65,6 @@ public class DefaultParserService
     private String parameterEncoding = PARAMETER_ENCODING_DEFAULT;
 
     /**
-     * The upload service component to use
-     */
-    private UploadService uploadService = null;
-
-    /**
      * The pool service component to use
      */
     private PoolService poolService = null;
@@ -78,6 +72,7 @@ public class DefaultParserService
     /**
      * Get the character encoding that will be used by this ValueParser.
      */
+    @Override
     public String getParameterEncoding()
     {
         return parameterEncoding;
@@ -91,6 +86,7 @@ public class DefaultParserService
      * @param value A String to be processed.
      * @return A new String converted to the case as specified by URL_CASE_FOLDING and trimmed.
      */
+    @Override
     public String convert(String value)
     {
         return convertAndTrim(value);
@@ -104,6 +100,7 @@ public class DefaultParserService
      * @return a new String.
      *
      */
+    @Override
     public String convertAndTrim(String value)
     {
         return convertAndTrim(value, getUrlFolding());
@@ -118,9 +115,13 @@ public class DefaultParserService
      * @param value A String to be processed.
      * @return A new String converted to lowercase and trimmed.
      */
+    @Override
     public String convertAndTrim(String value, URLCaseFolding fold)
     {
-        if(value == null) return "";
+        if(value == null)
+        {
+            return "";
+        }
 
         String tmp = value.trim();
 
@@ -157,6 +158,7 @@ public class DefaultParserService
      *
      * @return The current Folding Value
      */
+    @Override
     public URLCaseFolding getUrlFolding()
     {
         return folding;
@@ -167,50 +169,29 @@ public class DefaultParserService
      *
      * @return The current automaticUpload Value
      */
+    @Override
     public boolean getAutomaticUpload()
     {
         return automaticUpload;
     }
 
     /**
-     * Use the UploadService if available to parse the given request
-     * for uploaded files
+     * Parse the given request for uploaded files
      *
-     * @return A list of {@link org.apache.commons.fileupload.FileItem}s
+     * @return A list of {@link javax.servlet.http.Part}s
      *
-     * @throws ServiceException if parsing fails or the UploadService
-     * is not available
+     * @throws ServiceException if parsing fails
      */
-    public List<FileItem> parseUpload(HttpServletRequest request) throws ServiceException
+    @Override
+    public List<Part> parseUpload(HttpServletRequest request) throws ServiceException
     {
-        if (uploadService == null)
+        try
         {
-            throw new ServiceException(ParserService.ROLE, "UploadService is not available.");
+            return new ArrayList<Part>(request.getParts());
         }
-        else
+        catch (IOException | ServletException e)
         {
-            return uploadService.parseRequest(request);
-        }
-    }
-
-    /**
-     * Use the UploadService if available to parse the given request
-     * for uploaded files using the streaming API
-     *
-     * @return A {@link org.apache.commons.fileupload.FileItemIterator}
-     *
-     * @throws ServiceException if parsing fails or the UploadService
-     * is not available
-     */
-    public FileItemIterator getItemIterator(HttpServletRequest request) throws ServiceException
-    {
-        if (uploadService == null)
-        {
-            throw new ServiceException(ParserService.ROLE, "UploadService is not available.");
-        }
-        else
-        {
-            return uploadService.getItemIterator(request);
+            throw new ServiceException(ParserService.ROLE, "Could not parse upload request", e);
         }
     }
 
@@ -222,6 +203,7 @@ public class DefaultParserService
      *
      * @throws InstantiationException if the instance could not be created
      */
+    @Override
     public <P extends ValueParser> P getParser(Class<P> ppClass) throws InstantiationException
     {
         P vp = null;
@@ -260,6 +242,7 @@ public class DefaultParserService
      *
      * @param parser
      */
+    @Override
     public void putParser(ValueParser parser)
     {
         parser.clear();
@@ -269,6 +252,7 @@ public class DefaultParserService
     /**
      * Avalon component lifecycle method
      */
+    @Override
     public void configure(Configuration conf) throws ConfigurationException
     {
         String foldString = conf.getChild(URL_CASE_FOLDING_KEY).getValue(URLCaseFolding.NONE.name()).toLowerCase();
@@ -301,26 +285,9 @@ public class DefaultParserService
     /**
      * Avalon component lifecycle method
      */
+    @Override
     public void service(ServiceManager manager) throws ServiceException
     {
-        if (manager.hasService(UploadService.ROLE))
-        {
-            uploadService = (UploadService)manager.lookup(UploadService.ROLE);
-        }
-        else
-        {
-            /*
-             * Automatic parsing of uploaded file items was requested but no
-             * UploadService is available
-             */
-            if (getAutomaticUpload())
-            {
-                throw new ServiceException(ParserService.ROLE,
-                        AUTOMATIC_KEY + " = true requires " +
-                        UploadService.ROLE + " to be available");
-            }
-        }
-
         if (manager.hasService(PoolService.ROLE))
         {
             poolService = (PoolService)manager.lookup(PoolService.ROLE);

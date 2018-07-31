@@ -1,6 +1,5 @@
 package org.apache.fulcrum.parser;
 
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,18 +19,16 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
-
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 
 import org.apache.avalon.framework.service.ServiceException;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * DefaultParameterParser is a utility object to handle parsing and
@@ -103,6 +100,7 @@ public class DefaultParameterParser
     /**
      * Disposes the parser.
      */
+    @Override
     public void dispose()
     {
         this.request = null;
@@ -115,6 +113,7 @@ public class DefaultParameterParser
      *
      * @return the parsed servlet request or null.
      */
+    @Override
     public HttpServletRequest getRequest()
     {
         return request;
@@ -133,6 +132,7 @@ public class DefaultParameterParser
      *
      * @param request An HttpServletRequest.
      */
+    @Override
     public void setRequest(HttpServletRequest request)
     {
         clear();
@@ -150,44 +150,18 @@ public class DefaultParameterParser
                 && contentType != null
                 && contentType.startsWith("multipart/form-data"))
         {
-            if (getLogger().isDebugEnabled())
-            {
-                getLogger().debug("Running the Fulcrum Upload Service");
-            }
-
             try
             {
-                List<FileItem> fileItems = parserService.parseUpload(request);
+                List<Part> parts = parserService.parseUpload(request);
 
-                if (fileItems != null)
+                if (parts != null)
                 {
-                    for (FileItem fi : fileItems)
+                    for (Part p : parts)
                     {
-                        if (fi.isFormField())
-                        {
-                            getLogger().debug("Found an simple form field: " + fi.getFieldName() +", adding value " + fi.getString());
-
-                            String value = null;
-                            try
-                            {
-                                value = fi.getString(getCharacterEncoding());
-                            }
-                            catch (UnsupportedEncodingException e)
-                            {
-                                getLogger().error(getCharacterEncoding()
-                                        + " encoding is not supported."
-                                        + "Used the default when reading form data.");
-                                value = fi.getString();
-                            }
-                            add(fi.getFieldName(), value);
-                        }
-                        else
-                        {
-                            getLogger().debug("Found an uploaded file: " + fi.getFieldName());
-                            getLogger().debug("It has " + fi.getSize() + " Bytes and is " + (fi.isInMemory() ? "" : "not ") + "in Memory");
-                            getLogger().debug("Adding FileItem as " + fi.getFieldName() + " to the params");
-                            add(fi.getFieldName(), fi);
-                        }
+                        getLogger().debug("Found an uploaded file: " + p.getName());
+                        getLogger().debug("It has " + p.getSize() + " Bytes");
+                        getLogger().debug("Adding Part as " + p.getName() + " to the params");
+                        add(p.getName(), p);
                     }
                 }
             }
@@ -258,6 +232,7 @@ public class DefaultParameterParser
      *
      * @param uploadData A byte[] with data.
      */
+    @Override
     public void setUploadData ( byte[] uploadData )
     {
         this.uploadData = uploadData;
@@ -268,60 +243,47 @@ public class DefaultParameterParser
      *
      * @return uploadData A byte[] with data.
      */
+    @Override
     public byte[] getUploadData ()
     {
         return this.uploadData;
     }
 
-
     /**
-     * Add a FileItem object as a parameters.  If there are any
-     * FileItems already associated with the name, append to the
+     * Add a Part object as a parameters.  If there are any
+     * Parts already associated with the name, append to the
      * array.  The reason for this is that RFC 1867 allows multiple
      * files to be associated with single HTML input element.
      *
      * @param name A String with the name.
-     * @param value A FileItem with the value.
-     * @deprecated Use add(String name, FileItem item)
+     * @param value A Part with the value.
      */
-    public void append(String name, FileItem value)
+    @Override
+    public void add( String name, Part value )
     {
-        add(name, value);
-    }
-
-
-    /**
-     * Add a FileItem object as a parameters.  If there are any
-     * FileItems already associated with the name, append to the
-     * array.  The reason for this is that RFC 1867 allows multiple
-     * files to be associated with single HTML input element.
-     *
-     * @param name A String with the name.
-     * @param value A FileItem with the value.
-     */
-    public void add(String name, FileItem value)
-    {
-        FileItem[] items = this.getFileItems(name);
-        items = (FileItem []) ArrayUtils.add(items, value);
+        Part[] items = this.getParts(name);
+        items = ArrayUtils.add(items, value);
         parameters.put(convert(name), items);
     }
 
-
     /**
-     * Return a FileItem object for the given name.  If the name does
-     * not exist or the object stored is not a FileItem, return null.
+     * Return a Part object for the given name.  If the name does
+     * not exist or the object stored is not a Part, return null.
      *
      * @param name A String with the name.
-     * @return A FileItem.
+     * @return A Part.
      */
-    public FileItem getFileItem(String name)
+    @Override
+    public Part getPart(String name)
     {
         try
         {
-            FileItem value = null;
+            Part value = null;
             Object object = parameters.get(convert(name));
             if (object != null)
-                value = ((FileItem[])object)[0];
+            {
+                value = ((Part[])object)[0];
+            }
             return value;
         }
         catch ( ClassCastException e )
@@ -331,18 +293,19 @@ public class DefaultParameterParser
     }
 
     /**
-     * Return an array of FileItem objects for the given name.  If the
-     * name does not exist or the object stored is not a FileItem
+     * Return an array of Part objects for the given name.  If the
+     * name does not exist or the object stored is not a Part
      * array, return null.
      *
      * @param name A String with the name.
-     * @return A FileItem[].
+     * @return A Part[].
      */
-    public FileItem[] getFileItems(String name)
+    @Override
+    public Part[] getParts(String name)
     {
         try
         {
-            return (FileItem[])parameters.get(convert(name));
+            return (Part[])parameters.get(convert(name));
         }
         catch ( ClassCastException e )
         {
