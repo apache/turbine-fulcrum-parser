@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
 
+import org.apache.commons.lang3.time.FastDateFormat;
+
 
 /**
  * ValueParser is a base interface for classes that need to parse
@@ -97,12 +99,12 @@ public interface ValueParser extends Iterable<String>
     /**
      * Set the date format that will be used by this ValueParser.
      */
-    void setDateFormat(DateFormat df);
+    void setDateFormat(FastDateFormat df);
 
     /**
      * Get the date format that will be used by this ValueParser.
      */
-    DateFormat getDateFormat();
+    FastDateFormat getDateFormat();
 
     /**
      * Set the number format that will be used by this ValueParser.
@@ -714,6 +716,7 @@ public interface ValueParser extends Iterable<String>
      *
      * @return A String.
      */
+    @Override
     String toString();
 
     /**

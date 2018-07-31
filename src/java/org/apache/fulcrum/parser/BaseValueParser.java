@@ -37,8 +37,9 @@ import java.util.Set;
 
 import org.apache.avalon.framework.logger.LogEnabled;
 import org.apache.avalon.framework.logger.Logger;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.fulcrum.pool.Recyclable;
 
 /**
@@ -101,7 +102,7 @@ public class BaseValueParser
     private Locale locale = Locale.getDefault();
 
     /** The DateFormat to use for converting dates */
-    private DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, locale);
+    private FastDateFormat dateFormat = FastDateFormat.getDateInstance(FastDateFormat.SHORT, locale);
 
     /** The NumberFormat to use when converting floats and decimals */
     private NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
@@ -132,6 +133,7 @@ public class BaseValueParser
     /**
      * Set a ParserService instance
      */
+    @Override
     public void setParserService(ParserService parserService)
     {
         this.parserService = parserService;
@@ -140,6 +142,7 @@ public class BaseValueParser
     /**
      * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
      */
+    @Override
     public void enableLogging(Logger logger)
     {
         this.logger = logger;
@@ -158,6 +161,7 @@ public class BaseValueParser
     /**
      * Recycles the parser.
      */
+    @Override
     public void recycle()
     {
         recycle(DEFAULT_CHARACTER_ENCODING);
@@ -176,6 +180,7 @@ public class BaseValueParser
     /**
      * Disposes the parser.
      */
+    @Override
     public void dispose()
     {
         clear();
@@ -185,6 +190,7 @@ public class BaseValueParser
     /**
      * Clear all name/value pairs out of this object.
      */
+    @Override
     public void clear()
     {
         parameters.clear();
@@ -193,6 +199,7 @@ public class BaseValueParser
     /**
      * Set the character encoding that will be used by this ValueParser.
      */
+    @Override
     public void setCharacterEncoding(String s)
     {
         characterEncoding = s;
@@ -201,6 +208,7 @@ public class BaseValueParser
     /**
      * Get the character encoding that will be used by this ValueParser.
      */
+    @Override
     public String getCharacterEncoding()
     {
         return characterEncoding;
@@ -209,16 +217,18 @@ public class BaseValueParser
     /**
      * Set the locale that will be used by this ValueParser.
      */
+    @Override
     public void setLocale(Locale l)
     {
         locale = l;
-        setDateFormat(DateFormat.getDateInstance(DateFormat.SHORT, locale));
+        setDateFormat(FastDateFormat.getDateInstance(FastDateFormat.SHORT, locale));
         setNumberFormat(NumberFormat.getNumberInstance(locale));
     }
 
     /**
      * Get the locale that will be used by this ValueParser.
      */
+    @Override
     public Locale getLocale()
     {
         return locale;
@@ -227,7 +237,8 @@ public class BaseValueParser
     /**
      * Set the date format that will be used by this ValueParser.
      */
-    public void setDateFormat(DateFormat df)
+    @Override
+    public void setDateFormat(FastDateFormat df)
     {
         dateFormat = df;
     }
@@ -235,7 +246,8 @@ public class BaseValueParser
     /**
      * Get the date format that will be used by this ValueParser.
      */
-    public DateFormat getDateFormat()
+    @Override
+    public FastDateFormat getDateFormat()
     {
         return dateFormat;
     }
@@ -243,6 +255,7 @@ public class BaseValueParser
     /**
      * Set the number format that will be used by this ValueParser.
      */
+    @Override
     public void setNumberFormat(NumberFormat nf)
     {
         numberFormat = nf;
@@ -251,6 +264,7 @@ public class BaseValueParser
     /**
      * Get the number format that will be used by this ValueParser.
      */
+    @Override
     public NumberFormat getNumberFormat()
     {
         return numberFormat;
@@ -262,9 +276,11 @@ public class BaseValueParser
      * @param name A String with the name.
      * @param value A double with the value.
      */
+    @Override
     public void add(String name, double value)
     {
-        add(name, numberFormat.format(value));
+        NumberFormat nf = (NumberFormat) numberFormat.clone();
+        add(name, nf.format(value));
     }
 
     /**
@@ -273,6 +289,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @param value An int with the value.
      */
+    @Override
     public void add(String name, int value)
     {
         add(name, (long)value);
@@ -284,6 +301,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @param value An Integer with the value.
      */
+    @Override
     public void add(String name, Integer value)
     {
         if (value != null)
@@ -298,6 +316,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @param value A long with the value.
      */
+    @Override
     public void add(String name, long value)
     {
         add(name, Long.toString(value));
@@ -309,12 +328,13 @@ public class BaseValueParser
      * @param name A String with the name.
      * @param value A long with the value.
      */
+    @Override
     public void add(String name, String value)
     {
         if (value != null)
         {
             String [] items = getParam(name);
-            items = (String []) ArrayUtils.add(items, value);
+            items = ArrayUtils.add(items, value);
             putParam(name, items);
         }
     }
@@ -327,6 +347,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @param value A String Array.
      */
+    @Override
     public void add(String name, String [] value)
     {
         // ArrayUtils.addAll() looks promising but it would also add
@@ -350,6 +371,7 @@ public class BaseValueParser
      * @return The value that was mapped to the key (a <code>String[]</code>)
      *         or <code>null</code> if the key was not mapped.
      */
+    @Override
     public Object remove(String name)
     {
         return parameters.remove(convert(name));
@@ -363,6 +385,7 @@ public class BaseValueParser
      * @param value A String to be processed.
      * @return A new String converted to lowercase and trimmed.
      */
+    @Override
     public String convert(String value)
     {
         return convertAndTrim(value);
@@ -376,6 +399,7 @@ public class BaseValueParser
      * @param key An Object with the key to search for.
      * @return True if the object is found.
      */
+    @Override
     public boolean containsKey(Object key)
     {
         return parameters.containsKey(convert(String.valueOf(key)));
@@ -386,6 +410,7 @@ public class BaseValueParser
      *
      * @return A <code>Set</code> of the keys.
      */
+    @Override
     public Set<String> keySet()
     {
         return parameters.keySet();
@@ -396,6 +421,7 @@ public class BaseValueParser
      *
      * @return A object array with the keys.
      */
+    @Override
     public String[] getKeys()
     {
         return keySet().toArray(new String[0]);
@@ -406,6 +432,7 @@ public class BaseValueParser
      *
      * @return An <code>Iterator</code> over the keys.
      */
+    @Override
     public Iterator<String> iterator()
     {
         return parameters.keySet().iterator();
@@ -470,6 +497,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A boolean.
      */
+    @Override
     public boolean getBoolean(String name, boolean defaultValue)
     {
         Boolean result = getBooleanObject(name);
@@ -483,6 +511,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A boolean.
      */
+    @Override
     public boolean getBoolean(String name)
     {
         return getBoolean(name, false);
@@ -495,6 +524,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A boolean[].
      */
+    @Override
     public boolean[] getBooleans(String name)
     {
         boolean[] result = null;
@@ -523,6 +553,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A Boolean.
      */
+    @Override
     public Boolean getBooleanObject(String name)
     {
         return parseBoolean(getString(name));
@@ -541,6 +572,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A Boolean.
      */
+    @Override
     public Boolean getBooleanObject(String name, Boolean defaultValue)
     {
         Boolean result = getBooleanObject(name);
@@ -554,6 +586,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A Boolean[].
      */
+    @Override
     public Boolean[] getBooleanObjects(String name)
     {
         Boolean[] result = null;
@@ -583,8 +616,9 @@ public class BaseValueParser
 
         if (StringUtils.isNotEmpty(value))
         {
+            NumberFormat nf = (NumberFormat) numberFormat.clone();
             ParsePosition pos = new ParsePosition(0);
-            Number number = numberFormat.parse(value, pos);
+            Number number = nf.parse(value, pos);
 
             if (pos.getIndex() == value.length())
             {
@@ -625,6 +659,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A double.
      */
+    @Override
     public double getDouble(String name, double defaultValue)
     {
         Number number = getNumber(name);
@@ -638,6 +673,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A double.
      */
+    @Override
     public double getDouble(String name)
     {
         return getDouble(name, 0.0);
@@ -650,6 +686,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A double[].
      */
+    @Override
     public double[] getDoubles(String name)
     {
         double[] result = null;
@@ -674,6 +711,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A double.
      */
+    @Override
     public Double getDoubleObject(String name, Double defaultValue)
     {
         Number result = getNumber(name);
@@ -687,6 +725,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A double.
      */
+    @Override
     public Double getDoubleObject(String name)
     {
         return getDoubleObject(name, null);
@@ -699,6 +738,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A double[].
      */
+    @Override
     public Double[] getDoubleObjects(String name)
     {
         Double[] result = null;
@@ -723,6 +763,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A float.
      */
+    @Override
     public float getFloat(String name, float defaultValue)
     {
         Number number = getNumber(name);
@@ -736,6 +777,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A float.
      */
+    @Override
     public float getFloat(String name)
     {
         return getFloat(name, 0.0f);
@@ -748,6 +790,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A float[].
      */
+    @Override
     public float[] getFloats(String name)
     {
         float[] result = null;
@@ -772,6 +815,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A Float.
      */
+    @Override
     public Float getFloatObject(String name, Float defaultValue)
     {
         Number result = getNumber(name);
@@ -785,6 +829,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A Float.
      */
+    @Override
     public Float getFloatObject(String name)
     {
         return getFloatObject(name, null);
@@ -797,6 +842,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A float[].
      */
+    @Override
     public Float[] getFloatObjects(String name)
     {
         Float[] result = null;
@@ -821,6 +867,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A BigDecimal.
      */
+    @Override
     public BigDecimal getBigDecimal(String name, BigDecimal defaultValue)
     {
         Number result = getNumber(name);
@@ -834,6 +881,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A BigDecimal.
      */
+    @Override
     public BigDecimal getBigDecimal(String name)
     {
         return getBigDecimal(name, null);
@@ -846,6 +894,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A BigDecimal[].
      */
+    @Override
     public BigDecimal[] getBigDecimals(String name)
     {
         BigDecimal[] result = null;
@@ -870,6 +919,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return An int.
      */
+    @Override
     public int getInt(String name, int defaultValue)
     {
         Number result = getNumber(name);
@@ -883,6 +933,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return An int.
      */
+    @Override
     public int getInt(String name)
     {
         return getInt(name, 0);
@@ -895,6 +946,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return An int[].
      */
+    @Override
     public int[] getInts(String name)
     {
         int[] result = null;
@@ -919,6 +971,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return An Integer.
      */
+    @Override
     public Integer getIntObject(String name, Integer defaultValue)
     {
         Number result = getNumber(name);
@@ -932,6 +985,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return An Integer.
      */
+    @Override
     public Integer getIntObject(String name)
     {
         return getIntObject(name, null);
@@ -944,6 +998,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return An Integer[].
      */
+    @Override
     public Integer[] getIntObjects(String name)
     {
         Integer[] result = null;
@@ -968,6 +1023,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A long.
      */
+    @Override
     public long getLong(String name, long defaultValue)
     {
         Number result = getNumber(name);
@@ -981,6 +1037,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A long.
      */
+    @Override
     public long getLong(String name)
     {
         return getLong(name, 0);
@@ -993,6 +1050,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A long[].
      */
+    @Override
     public long[] getLongs(String name)
     {
         long[] result = null;
@@ -1016,6 +1074,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A Long[].
      */
+    @Override
     public Long[] getLongObjects(String name)
     {
         Long[] result = null;
@@ -1039,6 +1098,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A Long.
      */
+    @Override
     public Long getLongObject(String name)
     {
         return getLongObject(name, null);
@@ -1052,6 +1112,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A Long.
      */
+    @Override
     public Long getLongObject(String name, Long defaultValue)
     {
         Number result = getNumber(name);
@@ -1066,6 +1127,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A byte.
      */
+    @Override
     public byte getByte(String name, byte defaultValue)
     {
         Number result = getNumber(name);
@@ -1079,6 +1141,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A byte.
      */
+    @Override
     public byte getByte(String name)
     {
         return getByte(name, (byte) 0);
@@ -1093,6 +1156,7 @@ public class BaseValueParser
      * @return A byte[].
      * @exception UnsupportedEncodingException
      */
+    @Override
     public byte[] getBytes(String name)
             throws UnsupportedEncodingException
     {
@@ -1113,6 +1177,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A byte.
      */
+    @Override
     public Byte getByteObject(String name, Byte defaultValue)
     {
         Number result = getNumber(name);
@@ -1126,6 +1191,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A byte.
      */
+    @Override
     public Byte getByteObject(String name)
     {
         return getByteObject(name, null);
@@ -1138,6 +1204,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A String or null if the key is unknown.
      */
+    @Override
     public String getString(String name)
     {
         String [] value = getParam(name);
@@ -1159,6 +1226,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A String.
      */
+    @Override
     public String get(String name)
     {
         return getString(name);
@@ -1172,6 +1240,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A String.
      */
+    @Override
     public String getString(String name, String defaultValue)
     {
         String value = getString(name);
@@ -1187,6 +1256,7 @@ public class BaseValueParser
      * @param name The name of the parameter.
      * @param value The value to set.
      */
+    @Override
     public void setString(String name, String value)
     {
         if (value != null)
@@ -1202,6 +1272,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A String[].
      */
+    @Override
     public String[] getStrings(String name)
     {
         return getParam(name);
@@ -1215,6 +1286,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A String[].
      */
+    @Override
     public String[] getStrings(String name, String[] defaultValue)
     {
         String[] value = getParam(name);
@@ -1231,6 +1303,7 @@ public class BaseValueParser
      * @param name The name of the parameter.
      * @param values The value to set.
      */
+    @Override
     public void setStrings(String name, String[] values)
     {
         if (values != null)
@@ -1246,6 +1319,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return An Object.
      */
+    @Override
     public Object getObject(String name)
     {
         return getString(name);
@@ -1258,6 +1332,7 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return An Object[].
      */
+    @Override
     public Object[] getObjects(String name)
     {
         return getParam(name);
@@ -1273,6 +1348,7 @@ public class BaseValueParser
      * @param defaultValue The default value.
      * @return A Date.
      */
+    @Override
     public Date getDate(String name, DateFormat df, Date defaultValue)
     {
         Date result = defaultValue;
@@ -1304,9 +1380,26 @@ public class BaseValueParser
      * @param name A String with the name.
      * @return A Date.
      */
+    @Override
     public Date getDate(String name)
     {
-        return getDate(name, dateFormat, null);
+        Date result = null;
+        String value = StringUtils.trim(getString(name));
+
+        if (StringUtils.isNotEmpty(value))
+        {
+            try
+            {
+                // Reject invalid dates.
+                result = dateFormat.parse(value);
+            }
+            catch (ParseException e)
+            {
+                logConversionFailure(name, value, "Date");
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -1317,6 +1410,7 @@ public class BaseValueParser
      * @param df A DateFormat.
      * @return A Date.
      */
+    @Override
     public Date getDate(String name, DateFormat df)
     {
         return getDate(name, df, null);
@@ -1330,6 +1424,7 @@ public class BaseValueParser
      * @param bean An Object.
      * @exception Exception a generic exception.
      */
+    @Override
     public void setProperties(Object bean) throws Exception
     {
         Class<?> beanClass = bean.getClass();
@@ -1354,6 +1449,7 @@ public class BaseValueParser
      *
      * @return A textual representation of the parsed name/value pairs.
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer();
@@ -1547,6 +1643,7 @@ public class BaseValueParser
      *
      * @return true, if the object is disposed.
      */
+    @Override
     public boolean isDisposed()
     {
         return disposed;
@@ -1575,6 +1672,7 @@ public class BaseValueParser
      * @return a new String.
      *
      */
+    @Override
     public String convertAndTrim(String value)
     {
         return parserService.convertAndTrim(value);
@@ -1590,6 +1688,7 @@ public class BaseValueParser
      * (see {@link ParserService})
      * @return A new String converted to the correct case and trimmed.
      */
+    @Override
     public String convertAndTrim(String value, URLCaseFolding fold)
     {
         return parserService.convertAndTrim(value, fold);
@@ -1600,6 +1699,7 @@ public class BaseValueParser
      *
      * @return The current Folding Value
      */
+    @Override
     public URLCaseFolding getUrlFolding()
     {
         return parserService.getUrlFolding();

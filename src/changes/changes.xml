@@ -22,7 +22,23 @@
     </properties>
 
     <body>
-        <release version="1.0.4" date="in SVN">
+        <release version="2.0.0" date="in SVN">
+          <action dev="tv" type="fix">
+            Fix thread safety issues in BaseValueParser
+          </action>
+          <action dev="tv" type="remove">
+            INCOMAPTIBLE: Remove dependency on fulcrum-upload. 
+            All FileItems are now Parts.
+          </action>
+          <action dev="tv" type="update">
+            INCOMAPTIBLE: Update dependency servlet-api to 3.1
+          </action>
+          <action dev="tv" type="update">
+            Require Java-8
+          </action>
+          <action dev="tv" type="update">
+            Derive from Turbine parent POM 4
+          </action>
         </release>
         <release version="1.0.3" date="2013-10-03">
           <action dev="tv" type="update">
