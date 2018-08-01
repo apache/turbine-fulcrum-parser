@@ -39,7 +39,6 @@ import org.apache.avalon.framework.logger.LogEnabled;
 import org.apache.avalon.framework.logger.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.fulcrum.pool.Recyclable;
 
 /**
@@ -102,7 +101,7 @@ public class BaseValueParser
     private Locale locale = Locale.getDefault();
 
     /** The DateFormat to use for converting dates */
-    private FastDateFormat dateFormat = FastDateFormat.getDateInstance(FastDateFormat.SHORT, locale);
+    private DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, locale);
 
     /** The NumberFormat to use when converting floats and decimals */
     private NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
@@ -221,7 +220,7 @@ public class BaseValueParser
     public void setLocale(Locale l)
     {
         locale = l;
-        setDateFormat(FastDateFormat.getDateInstance(FastDateFormat.SHORT, locale));
+        setDateFormat(DateFormat.getDateInstance(DateFormat.SHORT, locale));
         setNumberFormat(NumberFormat.getNumberInstance(locale));
     }
 
@@ -238,7 +237,7 @@ public class BaseValueParser
      * Set the date format that will be used by this ValueParser.
      */
     @Override
-    public void setDateFormat(FastDateFormat df)
+    public void setDateFormat(DateFormat df)
     {
         dateFormat = df;
     }
@@ -247,7 +246,7 @@ public class BaseValueParser
      * Get the date format that will be used by this ValueParser.
      */
     @Override
-    public FastDateFormat getDateFormat()
+    public DateFormat getDateFormat()
     {
         return dateFormat;
     }
@@ -279,8 +278,7 @@ public class BaseValueParser
     @Override
     public void add(String name, double value)
     {
-        NumberFormat nf = (NumberFormat) numberFormat.clone();
-        add(name, nf.format(value));
+        add(name, numberFormat.format(value));
     }
 
     /**
@@ -616,9 +614,8 @@ public class BaseValueParser
 
         if (StringUtils.isNotEmpty(value))
         {
-            NumberFormat nf = (NumberFormat) numberFormat.clone();
             ParsePosition pos = new ParsePosition(0);
-            Number number = nf.parse(value, pos);
+            Number number = numberFormat.parse(value, pos);
 
             if (pos.getIndex() == value.length())
             {
@@ -1383,23 +1380,7 @@ public class BaseValueParser
     @Override
     public Date getDate(String name)
     {
-        Date result = null;
-        String value = StringUtils.trim(getString(name));
-
-        if (StringUtils.isNotEmpty(value))
-        {
-            try
-            {
-                // Reject invalid dates.
-                result = dateFormat.parse(value);
-            }
-            catch (ParseException e)
-            {
-                logConversionFailure(name, value, "Date");
-            }
-        }
-
-        return result;
+        return getDate(name, dateFormat, null);
     }
 
     /**

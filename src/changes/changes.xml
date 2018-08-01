@@ -23,9 +23,6 @@
 
     <body>
         <release version="2.0.0" date="in SVN">
-          <action dev="tv" type="fix">
-            Fix thread safety issues in BaseValueParser
-          </action>
           <action dev="tv" type="remove">
             INCOMAPTIBLE: Remove dependency on fulcrum-upload. 
             All FileItems are now Parts.

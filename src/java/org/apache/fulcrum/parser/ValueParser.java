@@ -27,9 +27,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
 
-import org.apache.commons.lang3.time.FastDateFormat;
-
-
 /**
  * ValueParser is a base interface for classes that need to parse
  * name/value Parameters, for example GET/POST data or Cookies
@@ -99,12 +96,12 @@ public interface ValueParser extends Iterable<String>
     /**
      * Set the date format that will be used by this ValueParser.
      */
-    void setDateFormat(FastDateFormat df);
+    void setDateFormat(DateFormat df);
 
     /**
      * Get the date format that will be used by this ValueParser.
      */
-    FastDateFormat getDateFormat();
+    DateFormat getDateFormat();
 
     /**
      * Set the number format that will be used by this ValueParser.
