@@ -46,16 +46,78 @@ import org.junit.Test;
 public class ParameterParserTest extends BaseUnit4Test
 {
     private ParameterParser parameterParser = null;
-
-    private ParserService parserService;
+    
+    private Part test;
 
     @Before
     public void setUpBefore() throws Exception
     {
         try
         {
-            parserService = (ParserService)this.lookup(ParserService.ROLE);
+            ParserService parserService = (ParserService)this.lookup(ParserService.ROLE);
             parameterParser = parserService.getParser(DefaultParameterParser.class);
+            
+            test = new Part()
+            {
+
+                @Override
+                public void write(String fileName) throws IOException
+                {
+                }
+
+                @Override
+                public String getSubmittedFileName()
+                {
+                    return null;
+                }
+
+                @Override
+                public long getSize()
+                {
+                    return 0;
+                }
+
+                @Override
+                public String getName()
+                {
+                    return "upload-field";
+                }
+
+                @Override
+                public InputStream getInputStream() throws IOException
+                {
+                    return null;
+                }
+
+                @Override
+                public Collection<String> getHeaders(String name)
+                {
+                    return null;
+                }
+
+                @Override
+                public Collection<String> getHeaderNames()
+                {
+                    return null;
+                }
+
+                @Override
+                public String getHeader(String name)
+                {
+                    return null;
+                }
+
+                @Override
+                public String getContentType()
+                {
+                    return "application/octet-stream";
+                }
+
+                @Override
+                public void delete() throws IOException
+                {
+                }
+            };
         }
         catch (ComponentException e)
         {
@@ -68,14 +130,6 @@ public class ParameterParserTest extends BaseUnit4Test
     public void testConfiguredUrlCaseFolding() throws Exception
     {
         assertTrue(parameterParser.getUrlFolding() == URLCaseFolding.NONE);
-    }
-    @Test
-    public void testConfiguredAutomaticUpload() throws Exception {
-        assertTrue(parserService.getAutomaticUpload());
-    }
-    @Test
-    public void testConfiguredParameterEncoding() throws Exception {
-        assertEquals("utf-8", parserService.getParameterEncoding());
     }
 
     /**
@@ -103,68 +157,6 @@ public class ParameterParserTest extends BaseUnit4Test
     {
         assertEquals("keySet() is not empty!", 0, parameterParser.keySet().size());
 
-        Part test = new Part()
-        {
-
-            @Override
-            public void write(String fileName) throws IOException
-            {
-            }
-
-            @Override
-            public String getSubmittedFileName()
-            {
-                return null;
-            }
-
-            @Override
-            public long getSize()
-            {
-                return 0;
-            }
-
-            @Override
-            public String getName()
-            {
-                return "upload-field";
-            }
-
-            @Override
-            public InputStream getInputStream() throws IOException
-            {
-                return null;
-            }
-
-            @Override
-            public Collection<String> getHeaders(String name)
-            {
-                return null;
-            }
-
-            @Override
-            public Collection<String> getHeaderNames()
-            {
-                return null;
-            }
-
-            @Override
-            public String getHeader(String name)
-            {
-                return null;
-            }
-
-            @Override
-            public String getContentType()
-            {
-                return "application/octet-stream";
-            }
-
-            @Override
-            public void delete() throws IOException
-            {
-            }
-        };
-
         // Push this into the parser using DefaultParameterParser's add() method.
         ((DefaultParameterParser) parameterParser).add("upload-field", test);
 
@@ -188,5 +180,11 @@ public class ParameterParserTest extends BaseUnit4Test
         // The following will actually cause a ClassCastException because getStrings() (and others) are not catering for Parts.
         assertNull("The returned should be null because a Part is not a String", parameterParser.getStrings("upload-field"));
         assertFalse(parameterParser.containsKey("missing-field"));
+        
+        // The following will actually cause a ClassCastException because getPart() (and others) are not catering for Non-Parts, e.g String.
+        assertNull("The returned should be null because a String is not a Part", parameterParser.getPart( "other-field" ));
+        Part uploadField = parameterParser.getPart( "upload-field" );
+        assertTrue(uploadField.getName().equals( "upload-field" ));
     }
+
 }

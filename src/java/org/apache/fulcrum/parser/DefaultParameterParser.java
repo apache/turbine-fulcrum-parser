@@ -20,9 +20,12 @@ package org.apache.fulcrum.parser;
  */
 
 import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
@@ -311,5 +314,15 @@ public class DefaultParameterParser
         {
             return null;
         }
+    }
+    
+    @Override
+    public Collection<Part> getParts()
+    {
+        return parameters.values().stream().
+                            filter( p-> p instanceof Part[]).
+                            flatMap(c -> Arrays.stream( (Part[]) c )).
+                            collect( Collectors.toList() );
+
     }
 }

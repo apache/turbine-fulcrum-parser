@@ -26,8 +26,6 @@ import static org.junit.Assert.fail;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Locale;

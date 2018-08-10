@@ -19,6 +19,8 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
+import java.util.Collection;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
@@ -117,4 +119,13 @@ public interface ParameterParser
      * @return A Part[].
      */
     Part[] getParts(String name);
+    
+    /**
+     * Return an array of all Part objects.  If no parts
+     * exist or the object stored is not a Part
+     * array, return an empty list.
+
+     * @return Collection<Part>
+     */
+    Collection<Part> getParts();
 }
