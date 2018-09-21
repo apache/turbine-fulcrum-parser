@@ -19,6 +19,7 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collection;
@@ -130,6 +131,14 @@ public class DefaultParameterParser
      * number of different datatypes.  The PATH_INFO data must be a
      * URLEncoded() string.
      * <p>
+     * Sets the request character encoding to the parser. 
+     * <p>
+     * Sets the request encoding, if it is not set and {@link ParserService#getParameterEncoding()} 
+     * is set to a non-default value {@link ParserService#PARAMETER_ENCODING_DEFAULT} 
+     * (if {@link HttpServletRequest#getCharacterEncoding()} returns null, 
+     * it has the default set to ISO-8859-1, cft. Servlet 2.4, 2.5, 3.0, 3.1 Specs).
+     * This will only succeed, if no data was read yet, cft. spec.
+     * <p>
      * To add name/value pairs to this set of parameters, use the
      * <code>add()</code> methods.
      *
@@ -143,6 +152,25 @@ public class DefaultParameterParser
         uploadData = null;
 
         String enc = request.getCharacterEncoding();
+        
+        if (enc == null && !parserService.getParameterEncoding().equals(ParserService.PARAMETER_ENCODING_DEFAULT )) {
+            try
+            {  
+                // no-op if data was read (parameter, POST..) 
+                request.setCharacterEncoding( parserService.getParameterEncoding() );
+                enc = request.getCharacterEncoding();
+                if (enc != null) {
+                    getLogger().debug("Set the request encoding successfully to parameterEncoding of parser: "+enc );
+                } else {
+                    getLogger().warn("Unsuccessfully (data read happened) tried to set the request encoding to "+ parserService.getParameterEncoding()  );
+                }
+            }
+            catch ( UnsupportedEncodingException e )
+            {
+                getLogger().error("Found only unsupported encoding "+ e.getMessage());
+            }
+        }
+        
         setCharacterEncoding(enc != null
                 ? enc
                 : parserService.getParameterEncoding());
