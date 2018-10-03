@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -160,10 +161,12 @@ public class ParserServiceTest extends BaseUnit4Test
         HttpServletRequest request = getMockRequest();
         // TODO check
         when(request.getContentType()).thenReturn("multipart/form-data; boundary=boundary");
-        when(request.getMethod()).thenReturn("post");
-        ((DefaultParameterParser) parameterParser).add(test.getName(), test);
+        when(request.getMethod()).thenReturn("POST");
+        parameterParser.add(test.getName(), test);
         Part secondPart = getPart("second-field");
-        ((DefaultParameterParser) parameterParser).add(secondPart.getName(), secondPart);
+        parameterParser.add(secondPart.getName(), secondPart);
+
+        when(request.getParts()).thenReturn(Arrays.asList(test, secondPart));
         
         List<Part> parts = parserService.parseUpload( request );
         assertTrue( !parts.isEmpty() );
@@ -179,35 +182,4 @@ public class ParserServiceTest extends BaseUnit4Test
         assertTrue( parts.isEmpty() );
         //assertTrue( parts.size() == 2 );
     }
-    
-    // from Turbine org.apache.turbine.test.BaseTestCase, should be later in Fulcrum Testcontainer BaseUnit4Test
-    protected HttpServletRequest getMockRequest() throws Exception
-    {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader("Content-type")).thenReturn("html/text");
-        when(request.getHeader("Accept-Language")).thenReturn("en-US");
-
-        Vector<String> v = new Vector<String>();
-        when(request.getParameterNames()).thenReturn(v.elements());
-        
-        when(request.getPart(anyString())).thenAnswer( new Answer<Object>()
-         {
-             @Override
-             public Object answer(InvocationOnMock invocation) throws Throwable
-             {
-                 String name = (String) invocation.getArguments()[0];
-                 return parameterParser.getPart(name);
-             }
-         } );
-        when(request.getParts()).thenAnswer( new Answer<Object>()
-        {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable
-            {
-                return ((DefaultParameterParser)parameterParser).getParts();
-            }
-        } );
-        return request;
-    }
-
 }
