@@ -47,7 +47,7 @@ public class ParameterParserTest extends BaseUnit4Test
 {
     private ParameterParser parameterParser = null;
     
-    private Part test;
+    private Part mockTest;
 
     @Before
     public void setUpBefore() throws Exception
@@ -57,7 +57,7 @@ public class ParameterParserTest extends BaseUnit4Test
             ParserService parserService = (ParserService)this.lookup(ParserService.ROLE);
             parameterParser = parserService.getParser(DefaultParameterParser.class);
             
-            test = new Part()
+            mockTest = new Part()
             {
 
                 @Override
@@ -104,6 +104,11 @@ public class ParameterParserTest extends BaseUnit4Test
                 @Override
                 public String getHeader(String name)
                 {
+                    if (name.equals( "content-disposition")) {
+                        //return "form-data; name=\"file\"; filename*=utf-8''%c2%a3%20uploadedFileName.ext";
+                        //return "attachment; filename=genome.jpeg;";
+                        return "form-data; name=\"file\"; filename=\"uploadedFileName.ext\"";
+                    }
                     return null;
                 }
 
@@ -158,7 +163,7 @@ public class ParameterParserTest extends BaseUnit4Test
         assertEquals("keySet() is not empty!", 0, parameterParser.keySet().size());
 
         // Push this into the parser using DefaultParameterParser's add() method.
-        ((DefaultParameterParser) parameterParser).add("upload-field", test);
+        ((DefaultParameterParser) parameterParser).add("upload-field", mockTest);
 
         assertEquals("Part not found in keySet()!", 1, parameterParser.keySet().size());
 
@@ -185,6 +190,30 @@ public class ParameterParserTest extends BaseUnit4Test
         assertNull("The returned should be null because a String is not a Part", parameterParser.getPart( "other-field" ));
         Part uploadField = parameterParser.getPart( "upload-field" );
         assertTrue(uploadField.getName().equals( "upload-field" ));
+
+    }
+    
+    /**
+     * This Test method checks the DefaultParameterParser which filename convenience mapping from Part.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testFilename4Path() throws Exception
+    {
+        assertEquals("keySet() is not empty!", 0, parameterParser.keySet().size());
+        
+        // Push this into the parser using DefaultParameterParser's add() method.
+        ((DefaultParameterParser) parameterParser).add("upload-field", mockTest);
+        
+        assertTrue(parameterParser.containsKey("upload-field"));
+        
+        Part uploadField = parameterParser.getPart( "upload-field" );
+        assertEquals("upload-field", uploadField.getName());
+        
+        String fileName = parameterParser.getFileName( uploadField );
+        assertEquals("uploadedFileName.ext",fileName);
+        
     }
 
 }

@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -151,29 +153,7 @@ public class DefaultParameterParser
 
         uploadData = null;
 
-        String enc = request.getCharacterEncoding();
-        
-        if (enc == null && !parserService.getParameterEncoding().equals(ParserService.PARAMETER_ENCODING_DEFAULT )) {
-            try
-            {  
-                // no-op if data was read (parameter, POST..) 
-                request.setCharacterEncoding( parserService.getParameterEncoding() );
-                enc = request.getCharacterEncoding();
-                if (enc != null) {
-                    getLogger().debug("Set the request encoding successfully to parameterEncoding of parser: "+enc );
-                } else {
-                    getLogger().warn("Unsuccessfully (data read happened) tried to set the request encoding to "+ parserService.getParameterEncoding()  );
-                }
-            }
-            catch ( UnsupportedEncodingException e )
-            {
-                getLogger().error("Found only unsupported encoding "+ e.getMessage());
-            }
-        }
-        
-        setCharacterEncoding(enc != null
-                ? enc
-                : parserService.getParameterEncoding());
+        handleEncoding( request );
 
         String contentType = request.getHeader("Content-type");
 
@@ -210,6 +190,22 @@ public class DefaultParameterParser
                     request.getParameterValues(paramName));
         }
 
+        handlePathInfo( request );
+
+        this.request = request;
+
+        if (getLogger().isDebugEnabled())
+        {
+            getLogger().debug("Parameters found in the Request:");
+            for (String key : keySet())
+            {
+                getLogger().debug("Key: " + key + " -> " + getString(key));
+            }
+        }
+    }
+
+    private void handlePathInfo( HttpServletRequest request )
+    {
         // Also cache any pathinfo variables that are passed around as
         // if they are query string data.
         try
@@ -245,17 +241,33 @@ public class DefaultParameterParser
             // things that depend on it being right will fail later
             // and should be caught later.
         }
+    }
 
-        this.request = request;
-
-        if (getLogger().isDebugEnabled())
-        {
-            getLogger().debug("Parameters found in the Request:");
-            for (String key : keySet())
+    private void handleEncoding( HttpServletRequest request )
+    {
+        String enc = request.getCharacterEncoding();
+        
+        if (enc == null && !parserService.getParameterEncoding().equals(ParserService.PARAMETER_ENCODING_DEFAULT )) {
+            try
+            {  
+                // no-op if data was read (parameter, POST..) 
+                request.setCharacterEncoding( parserService.getParameterEncoding() );
+                enc = request.getCharacterEncoding();
+                if (enc != null) {
+                    getLogger().debug("Set the request encoding successfully to parameterEncoding of parser: "+enc );
+                } else {
+                    getLogger().warn("Unsuccessfully (data read happened) tried to set the request encoding to "+ parserService.getParameterEncoding()  );
+                }
+            }
+            catch ( UnsupportedEncodingException e )
             {
-                getLogger().debug("Key: " + key + " -> " + getString(key));
+                getLogger().error("Found only unsupported encoding "+ e.getMessage());
             }
         }
+        
+        setCharacterEncoding(enc != null
+                ? enc
+                : parserService.getParameterEncoding());
     }
 
     /**
@@ -340,7 +352,7 @@ public class DefaultParameterParser
         }
         catch ( ClassCastException e )
         {
-            return null;
+            return new Part[0];// empty array
         }
     }
     
@@ -352,5 +364,30 @@ public class DefaultParameterParser
                             flatMap(c -> Arrays.stream( (Part[]) c )).
                             collect( Collectors.toList() );
 
+    }
+
+    @Override
+    public String getFileName( Part part )
+    {
+        final String partHeader = part.getHeader("content-disposition");
+        Pattern regex = Pattern.compile("filename\\*?=\"?(.[^\"]+)\"?"); // rfc2183, rfc5987 quoted string, but attachments may have not?
+        for (String content : partHeader.split(";")) {
+            if (content.trim().contains( "filename" )) { // could also filename*=<encoding>''<value>
+                String fnTmp = "";
+                String srcStr = content.trim();
+                Matcher regexMatcher = regex.matcher(srcStr);
+                if (regexMatcher.find()) {
+                    fnTmp = regexMatcher.group(1);
+                    if (getLogger().isDebugEnabled()) {
+                        getLogger().debug( "matched fileName:" + fnTmp );
+                    }
+                } else { // last resort
+                    fnTmp  = srcStr.substring(srcStr.indexOf('=')+1).replace( "\"", "" );
+                    getLogger().debug( "second fileName match:" + fnTmp );
+                }
+                return fnTmp.trim();
+            }
+        }
+        return null;
     }
 }

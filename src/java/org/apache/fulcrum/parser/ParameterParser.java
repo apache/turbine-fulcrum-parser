@@ -128,4 +128,12 @@ public interface ParameterParser
      * @return Collection<Part>
      */
     Collection<Part> getParts();
+    
+    /**
+     * Convenience fileName utility, which extracts the filename from header
+     *  
+     * 
+     * @return the fileName String object.
+     */
+    String getFileName(Part part);
 }
