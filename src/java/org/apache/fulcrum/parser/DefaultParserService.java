@@ -237,10 +237,11 @@ public class DefaultParserService
     }
 
     /**
-     * Return a used Parser to the service. This allows for
-     * pooling and recycling
+     * Clears the parse and puts it back into
+     * the pool service. This allows for pooling 
+     * and recycling
      *
-     * @param parser
+     * @param parser The value parser to use
      */
     @Override
     public void putParser(ValueParser parser)
@@ -251,6 +252,9 @@ public class DefaultParserService
 
     /**
      * Avalon component lifecycle method
+     * 
+     * @param conf the configuration
+     * @throws ConfigurationException Generic exception
      */
     @Override
     public void configure(Configuration conf) throws ConfigurationException
@@ -284,6 +288,10 @@ public class DefaultParserService
     // ---------------- Avalon Lifecycle Methods ---------------------
     /**
      * Avalon component lifecycle method
+     * 
+     * @param manager The service manager instance
+     * @throws ServiceException generic exception
+     * 
      */
     @Override
     public void service(ServiceManager manager) throws ServiceException

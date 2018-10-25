@@ -82,10 +82,10 @@ public class BaseValueParser
     private Logger logger;
 
     /** String values which would evaluate to Boolean.TRUE */
-    private static String[] trueValues = {"TRUE","T","YES","Y","1","ON"};
+    private static final String[] trueValues = {"TRUE","T","YES","Y","1","ON"};
 
     /** String values which would evaluate to Boolean.FALSE */
-    private static String[] falseValues = {"FALSE","F","NO","N","0","OFF"};
+    private static final String[] falseValues = {"FALSE","F","NO","N","0","OFF"};
 
     /**
      * The character encoding to use when converting to byte arrays
@@ -113,6 +113,8 @@ public class BaseValueParser
 
     /**
      * Constructor that takes a character encoding
+     * 
+     * @param characterEncoding desired character encoding
      */
     public BaseValueParser(String characterEncoding)
     {
@@ -121,6 +123,9 @@ public class BaseValueParser
 
     /**
      * Constructor that takes a character encoding and a locale
+     * 
+     * @param characterEncoding Sets the character encoding
+     * @param locale Sets the locale
      */
     public BaseValueParser(String characterEncoding, Locale locale)
     {
@@ -131,6 +136,8 @@ public class BaseValueParser
 
     /**
      * Set a ParserService instance
+     * 
+     * @param parserService The parser service instance
      */
     @Override
     public void setParserService(ParserService parserService)
@@ -140,6 +147,7 @@ public class BaseValueParser
 
     /**
      * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
+     * @param logger The logger to be used
      */
     @Override
     public void enableLogging(Logger logger)
@@ -1151,7 +1159,7 @@ public class BaseValueParser
      *
      * @param name A String with the name.
      * @return A byte[].
-     * @exception UnsupportedEncodingException
+     * @throws UnsupportedEncodingException Generic exception
      */
     @Override
     public byte[] getBytes(String name)

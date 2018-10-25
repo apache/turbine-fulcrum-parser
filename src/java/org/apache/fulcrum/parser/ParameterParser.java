@@ -125,14 +125,14 @@ public interface ParameterParser
      * exist or the object stored is not a Part
      * array, return an empty list.
 
-     * @return Collection<Part>
+     * @return Collection Collection of parts
      */
     Collection<Part> getParts();
     
     /**
      * Convenience fileName utility, which extracts the filename from header
      *  
-     * 
+     * @param part The part which represents the uploaded file
      * @return the fileName String object.
      */
     String getFileName(Part part);

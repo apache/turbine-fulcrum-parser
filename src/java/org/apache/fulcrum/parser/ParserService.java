@@ -55,8 +55,8 @@ public interface ParserService
      * <p> The default value of 'automaticUpload' property
      * (<code>false</code>).  If set to <code>true</code>, parsing the
      * multipart request will be performed automatically by {@link
-     * org.apache.fulcrum.parser.ParameterParser}.  Otherwise, an {@link
-     * org.apache.turbine.modules.Action} may decide to parse the
+     * org.apache.fulcrum.parser.ParameterParser}.  Otherwise, an 
+     * org.apache.turbine.modules.Action may decide to parse the
      * request by calling {@link #parseUpload(HttpServletRequest)
      * parseRequest} manually.
      */
@@ -65,6 +65,8 @@ public interface ParserService
     /**
      * Get the parameter encoding that has been configured as default for
      * the ParserService.
+     * 
+     * @return A String for the parameter encoding
      */
     String getParameterEncoding();
 
@@ -82,7 +84,6 @@ public interface ParserService
      * Convert a String value according to the url-case-folding property.
      *
      * @param value the String to convert
-     *
      * @return a new String.
      *
      */
@@ -117,8 +118,8 @@ public interface ParserService
     /**
      * Parse the given request for uploaded files
      *
+     * @param request the HttpServletRequest object
      * @return A list of {@link javax.servlet.http.Part}s
-     *
      * @throws ServiceException if parsing fails
      */
     List<Part> parseUpload(HttpServletRequest request) throws ServiceException;
@@ -127,17 +128,17 @@ public interface ParserService
      * Get a {@link ValueParser} instance from the service. Use the
      * default implementation.
      *
+     * @param <P> the parser class representation
+     * @param ppClass ...JavaDoc weirdness...
      * @return An object that implements ValueParser
-     *
      * @throws InstantiationException if the instance could not be created
      */
     <P extends ValueParser> P getParser(Class<P> ppClass) throws InstantiationException;
 
     /**
-     * Return a used Parser to the service. This allows for
-     * pooling and recycling
+     * Put the parser into service
      *
-     * @param parser
+     * @param parser The value parser to be used 
      */
     void putParser(ValueParser parser);
 }

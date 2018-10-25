@@ -75,41 +75,57 @@ public interface ValueParser extends Iterable<String>
 
     /**
      * Set the character encoding that will be used by this ValueParser.
+     * 
+     * @param characterEncoding the character encoding to use
      */
-    void setCharacterEncoding(String s);
+    void setCharacterEncoding(String characterEncoding);
 
     /**
      * Get the character encoding that will be used by this ValueParser.
+     * 
+     * @return Current character encoding
      */
     String getCharacterEncoding();
 
     /**
      * Set the locale that will be used by this ValueParser.
+     * 
+     * @param locale the default locale to be used by the parser 
      */
-    void setLocale(Locale l);
+    void setLocale(Locale locale);
 
     /**
      * Get the locale that will be used by this ValueParser.
+     * 
+     * @return Locale the locale being used
      */
     Locale getLocale();
 
     /**
      * Set the date format that will be used by this ValueParser.
+     * 
+     * @param dateFormat the date format
      */
-    void setDateFormat(DateFormat df);
+    void setDateFormat(DateFormat dateFormat);
 
     /**
      * Get the date format that will be used by this ValueParser.
+     * 
+     * @return DateFormat current date format used by this ValueParser
      */
     DateFormat getDateFormat();
 
     /**
      * Set the number format that will be used by this ValueParser.
+     * 
+     * @param numberFormat the number format to use
      */
-    void setNumberFormat(NumberFormat nf);
+    void setNumberFormat(NumberFormat numberFormat);
 
     /**
      * Get the number format that will be used by this ValueParser.
+     * 
+     * @return NumberFormat the current number format
      */
     NumberFormat getNumberFormat();
 
@@ -178,6 +194,7 @@ public interface ValueParser extends Iterable<String>
      * contained <code>Hashtable.remove()</code>.
      *
      *
+     * @param name the name of the mapped value to remove
      * @return The value that was mapped to the key (a <code>String[]</code>)
      *         or <code>null</code> if the key was not mapped.
      */
@@ -251,6 +268,7 @@ public interface ValueParser extends Iterable<String>
      * The string is compared without regard to case.
      *
      * @param name A String with the name.
+     * @param defaultValue boolean default if not found
      * @return A Boolean.
      */
     Boolean getBooleanObject(String name, Boolean defaultValue);
@@ -551,7 +569,7 @@ public interface ValueParser extends Iterable<String>
      *
      * @param name A String with the name.
      * @return A byte[].
-     * @exception UnsupportedEncodingException
+     * @throws UnsupportedEncodingException Generic exception
      */
     byte[] getBytes(String name) throws UnsupportedEncodingException;
 
@@ -733,6 +751,7 @@ public interface ValueParser extends Iterable<String>
      * string so that it does not destroy the value data.
      *
      * @param value A String to be processed.
+     * @param folding the type of URL case folding to be used
      * @return A new String converted and trimmed.
      */
     String convertAndTrim(String value, URLCaseFolding folding);

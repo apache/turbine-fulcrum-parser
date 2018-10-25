@@ -126,6 +126,8 @@ public abstract class DataStreamParser
      * Initialize the StreamTokenizer instance used to read the lines
      * from the input reader. This must be implemented in subclasses to
      * set up the tokenizing properties.
+     * 
+     * @param tokenizer the StreamTokenizer to use
      */
     protected abstract void initTokenizer(StreamTokenizer tokenizer);
 

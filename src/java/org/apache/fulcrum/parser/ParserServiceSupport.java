@@ -31,6 +31,8 @@ public interface ParserServiceSupport
 {
     /**
      * Set a ParserService instance
+     * 
+     * @param parserService the service to be used
      */
     void setParserService(ParserService parserService);
 }

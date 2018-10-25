@@ -78,17 +78,26 @@ public interface CookieParser
     /**
      * Set a cookie that will be stored on the client for
      * the duration of the session.
+     * 
+     * @param name The name of the cookie
+     * @param value The value of the cooking
      */
     void set (String name, String value);
 
     /**
-     * Set a persisten cookie on the client that will expire
+     * Set a persistent cookie on the client that will expire
      * after a maximum age (given in seconds).
+     * 
+     * @param name A String for the name 
+     * @param value  A String for the value
+     * @param seconds_age An int for the age in seconds
      */
     void set (String name, String value, int seconds_age);
 
     /**
      * Remove a previously set cookie from the client machine.
+     * 
+     * @param name the name of the cooking to unset
      */
     void unset (String name);
 }

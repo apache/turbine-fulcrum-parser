@@ -93,6 +93,8 @@ public class TSVParser
     /**
      * Initialize the StreamTokenizer instance used to read the lines
      * from the input reader.
+     * 
+     * @param tokenizer the stream tokenizer to be used
      */
     protected void initTokenizer(StreamTokenizer tokenizer)
     {
