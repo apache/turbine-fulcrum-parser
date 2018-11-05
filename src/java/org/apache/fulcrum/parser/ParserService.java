@@ -128,8 +128,7 @@ public interface ParserService
      * Get a {@link ValueParser} instance from the service. Use the
      * default implementation.
      *
-     * @param <P> the parser class representation
-     * @param ppClass ...JavaDoc weirdness...
+     * @param ppClass parameter parser class
      * @return An object that implements ValueParser
      * @throws InstantiationException if the instance could not be created
      */
