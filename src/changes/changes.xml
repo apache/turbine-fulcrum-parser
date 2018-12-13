@@ -23,6 +23,12 @@
 
     <body>
         <release version="2.0.0" date="in SVN">
+          <action dev="painter" type="update">
+            Update dependency commons-lang3 to 3.8.1
+          </action>
+          <action dev="painter" type="update">
+            Derive from Turbine parent POM 5
+          </action>
           <action dev="tv" type="remove">
             INCOMAPTIBLE: Remove dependency on fulcrum-upload. 
             All FileItems are now Parts.
@@ -32,9 +38,6 @@
           </action>
           <action dev="tv" type="update">
             Require Java-8
-          </action>
-          <action dev="tv" type="update">
-            Derive from Turbine parent POM 4
           </action>
         </release>
         <release version="1.0.3" date="2013-10-03">

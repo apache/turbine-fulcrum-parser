@@ -48,7 +48,7 @@ public class BaseValueParserTest extends BaseUnit5Test
 
     /**
      * Performs any initialization that must happen before each test is run.
-     * @throws Exception
+     * @throws Exception if parser service not found
      */
     @BeforeEach
     public void setUp() throws Exception
@@ -122,6 +122,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         result = parser.getByte("unparsable");
         assertEquals(result, 0);
     }
+    
     @Test
     public void testGetByteObject()
     {
@@ -143,6 +144,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         result = parser.getByteObject("unparsable");
         assertNull(result);
     }
+    
     @Test
     public void testGetInt()
     {

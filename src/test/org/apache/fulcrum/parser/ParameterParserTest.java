@@ -129,6 +129,11 @@ public class ParameterParserTest extends BaseUnit5Test
         }
     }
 
+    /**
+     * Simple test to verify the current configuration of URL Case Folding
+     * 
+     * @throws Exception generic exception
+     */
     @Test
     public void testConfiguredUrlCaseFolding() throws Exception
     {
@@ -136,13 +141,14 @@ public class ParameterParserTest extends BaseUnit5Test
     }
 
     /**
-     * Simple test to verify that URL Case Folding works properly
+     * Simple test to verify that variations on URL Case Folding work properly
      *
-     * @throws Exception
+     * @throws Exception if the parameter parser is not found
      */
     @Test
-    public void testRepositoryExists() throws Exception
+    public void testAlternateCaseFoldings() throws Exception
     {
+
         assertEquals(parameterParser.convertAndTrim(" TRIMMED_and_Not_Modified ", URLCaseFolding.NONE),"TRIMMED_and_Not_Modified");
         assertEquals(parameterParser.convertAndTrim(" TRIMMED_and_Lower_Case ", URLCaseFolding.LOWER),"trimmed_and_lower_case");
         assertEquals(parameterParser.convertAndTrim(" TRIMMED_and_Upper_Case ", URLCaseFolding.UPPER),"TRIMMED_AND_UPPER_CASE");
@@ -153,7 +159,7 @@ public class ParameterParserTest extends BaseUnit5Test
      * The suggested problem was that pp.keySet() returns both Keys, but pp.getStrings("key")
      * only checks for keys which are not Parts.
      *
-     * @throws Exception
+     * @throws Exception generic exception
      */
     @Test
     public void testAddPathInfo() throws Exception
@@ -194,7 +200,7 @@ public class ParameterParserTest extends BaseUnit5Test
     /**
      * This Test method checks the DefaultParameterParser which filename convenience mapping from Part.
      *
-     * @throws Exception
+     * @throws Exception generic exception
      */
     @Test
     public void testFilename4Path() throws Exception
