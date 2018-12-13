@@ -1,5 +1,10 @@
 package org.apache.fulcrum.parser;
 
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,53 +24,35 @@ package org.apache.fulcrum.parser;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Vector;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import org.apache.avalon.framework.component.ComponentException;
-import org.apache.fulcrum.testcontainer.BaseUnit4Test;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.apache.fulcrum.testcontainer.BaseUnit5Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 /**
  * Basic test that ParameterParser instantiates.
  *
  * @author <a href="epugh@opensourceconnections.com">Eric Pugh</a>
  * @version $Id: ParameterParserTest.java 1837188 2018-07-31 22:23:27Z tv $
  */
-public class ParserServiceTest extends BaseUnit4Test
+public class ParserServiceTest extends BaseUnit5Test
 {
 
     private ParserService parserService;
     private ParameterParser parameterParser = null;
     private Part test;
 
-    @Before
+    @BeforeEach
     public void setUpBefore() throws Exception
     {
         try
