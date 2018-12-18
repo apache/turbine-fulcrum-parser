@@ -24,6 +24,9 @@
     <body>
         <release version="2.0.0" date="in SVN">
           <action dev="painter" type="update">
+            PMD report cleanup
+          </action>
+          <action dev="painter" type="update">
             Update dependency commons-lang3 to 3.8.1
           </action>
           <action dev="painter" type="update">

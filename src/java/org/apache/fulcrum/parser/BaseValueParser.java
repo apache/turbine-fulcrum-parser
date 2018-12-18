@@ -467,14 +467,14 @@ public class BaseValueParser
             cnt < Math.max(trueValues.length, falseValues.length); cnt++)
             {
                 // Short-cut evaluation or bust!
-                if ((cnt < trueValues.length) &&
+                if (cnt < trueValues.length &&
                    value.equalsIgnoreCase(trueValues[cnt]))
                 {
                     result = Boolean.TRUE;
                     break;
                 }
 
-                if ((cnt < falseValues.length) &&
+                if (cnt < falseValues.length &&
                    value.equalsIgnoreCase(falseValues[cnt]))
                 {
                     result = Boolean.FALSE;
@@ -482,13 +482,10 @@ public class BaseValueParser
                 }
             }
 
-            if (result == null)
+            if (result == null && getLogger().isWarnEnabled() == true)
             {
-                if (getLogger().isWarnEnabled())
-                {
-                    getLogger().warn("Parameter with value of ("
-                            + value + ") could not be converted to a Boolean");
-                }
+                getLogger().warn("Parameter with value of ("
+                        + value + ") could not be converted to a Boolean");
             }
         }
 
@@ -928,7 +925,7 @@ public class BaseValueParser
     public int getInt(String name, int defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : result.intValue());
+        return (result == null || result instanceof Double ? defaultValue : result.intValue());
     }
 
     /**
@@ -962,7 +959,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = ((number == null || number instanceof Double) ? 0 : number.intValue());
+                result[i] = (number == null || number instanceof Double ? 0 : number.intValue());
             }
         }
         return result;
@@ -980,7 +977,7 @@ public class BaseValueParser
     public Integer getIntObject(String name, Integer defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : Integer.valueOf(result.intValue()));
+        return (result == null || result instanceof Double ? defaultValue : Integer.valueOf(result.intValue()));
     }
 
     /**
@@ -1014,7 +1011,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = ((number == null || number instanceof Double) ? null : Integer.valueOf(number.intValue()));
+                result[i] = (number == null || number instanceof Double ? null : Integer.valueOf(number.intValue()));
             }
         }
         return result;
@@ -1032,7 +1029,7 @@ public class BaseValueParser
     public long getLong(String name, long defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : result.longValue());
+        return (result == null || result instanceof Double ? defaultValue : result.longValue());
     }
 
     /**
@@ -1066,7 +1063,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = ((number == null || number instanceof Double) ? 0L : number.longValue());
+                result[i] = (number == null || number instanceof Double ? 0L : number.longValue());
             }
         }
         return result;
@@ -1090,7 +1087,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = ((number == null || number instanceof Double) ? null : Long.valueOf(number.longValue()));
+                result[i] = (number == null || number instanceof Double ? null : Long.valueOf(number.longValue()));
             }
         }
         return result;
@@ -1121,7 +1118,7 @@ public class BaseValueParser
     public Long getLongObject(String name, Long defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : Long.valueOf(result.longValue()));
+        return (result == null || result instanceof Double ? defaultValue : Long.valueOf(result.longValue()));
     }
 
     /**
@@ -1136,7 +1133,7 @@ public class BaseValueParser
     public byte getByte(String name, byte defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : result.byteValue());
+        return (result == null || result instanceof Double ? defaultValue : result.byteValue());
     }
 
     /**
@@ -1186,7 +1183,7 @@ public class BaseValueParser
     public Byte getByteObject(String name, Byte defaultValue)
     {
         Number result = getNumber(name);
-        return ((result == null || result instanceof Double) ? defaultValue : Byte.valueOf(result.byteValue()));
+        return (result == null || result instanceof Double ? defaultValue : Byte.valueOf(result.byteValue()));
     }
 
     /**
@@ -1213,10 +1210,7 @@ public class BaseValueParser
     public String getString(String name)
     {
         String [] value = getParam(name);
-
-        return (value == null
-                || value.length == 0)
-                ? null : value[0];
+        return value == null || value.length == 0 ? null : value[0];
     }
 
     /**
@@ -1249,8 +1243,7 @@ public class BaseValueParser
     public String getString(String name, String defaultValue)
     {
         String value = getString(name);
-
-        return (StringUtils.isEmpty(value) ? defaultValue : value );
+        return StringUtils.isEmpty(value) ? defaultValue : value;
     }
 
     /**
@@ -1295,9 +1288,7 @@ public class BaseValueParser
     public String[] getStrings(String name, String[] defaultValue)
     {
         String[] value = getParam(name);
-
-        return (value == null || value.length == 0)
-            ? defaultValue : value;
+        return value == null || value.length == 0 ? defaultValue : value;
     }
 
     /**
@@ -1358,7 +1349,6 @@ public class BaseValueParser
     {
         Date result = defaultValue;
         String value = StringUtils.trim(getString(name));
-
         if (StringUtils.isNotEmpty(value))
         {
             try
@@ -1420,13 +1410,13 @@ public class BaseValueParser
         PropertyDescriptor[] props
                 = Introspector.getBeanInfo(beanClass).getPropertyDescriptors();
 
-        for (int i = 0; i < props.length; i++)
+        for ( PropertyDescriptor pd : props )
         {
-            String propname = props[i].getName();
-            Method setter = props[i].getWriteMethod();
+            String propname = pd.getName();
+            Method setter = pd.getWriteMethod();
             if (setter != null && containsKey(propname))
             {
-                setProperty(bean, props[i]);
+                setProperty(bean, pd);
             }
         }
     }

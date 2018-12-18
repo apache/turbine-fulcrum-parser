@@ -278,7 +278,8 @@ public class DefaultParameterParser
     @Override
     public void setUploadData ( byte[] uploadData )
     {
-        this.uploadData = uploadData;
+    	// copy contents into our own representation for safety re: EI_EXPOSE_REP
+        this.uploadData = Arrays.copyOf(uploadData, uploadData.length);
     }
 
     /**
