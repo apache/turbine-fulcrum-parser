@@ -23,6 +23,9 @@
 
     <body>
         <release version="2.0.0" date="in SVN">
+          <action dev="gk" type="update">
+            Added tests for getParts()
+          </action>
           <action dev="painter" type="update">
             PMD report cleanup
           </action>

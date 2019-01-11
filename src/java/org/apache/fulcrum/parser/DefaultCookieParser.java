@@ -107,15 +107,14 @@ public class DefaultCookieParser
         setCharacterEncoding(enc != null ? enc : "US-ASCII");
 
         Cookie[] cookies = request.getCookies();
-
         getLogger().debug ("Number of Cookies "+cookies.length);
 
-        for (int i=0; i<cookies.length; i++)
+        for (Cookie cookie : cookies)
         {
-            String name = convert (cookies[i].getName());
-            String value = cookies[i].getValue();
-            getLogger().debug ("Adding "+name+"="+value);
-            add (name,value);
+            String name = convert(cookie.getName());
+            String value = cookie.getValue();
+            getLogger().debug ("Adding " + name + "=" + value);
+            add(name, value);
         }
 
         this.request = request;
@@ -128,7 +127,7 @@ public class DefaultCookieParser
      */
     public void set (String name, String value)
     {
-        set (name,value,AGE_SESSION);
+        set (name, value, AGE_SESSION);
     }
 
     /**
@@ -142,10 +141,10 @@ public class DefaultCookieParser
             throw new IllegalStateException("Servlet response not available");
         }
 
-        Cookie cookie = new Cookie (name,value);
-        cookie.setMaxAge (seconds_age);
-        cookie.setPath (request.getServletPath());
-        response.addCookie (cookie);
+        Cookie cookie = new Cookie(name, value);
+        cookie.setMaxAge(seconds_age);
+        cookie.setPath(request.getServletPath());
+        response.addCookie(cookie);
     }
 
     /**
@@ -153,7 +152,7 @@ public class DefaultCookieParser
      */
     public void unset (String name)
     {
-        set (name," ",AGE_DELETE);
+        set (name, " ", AGE_DELETE);
     }
 
 }

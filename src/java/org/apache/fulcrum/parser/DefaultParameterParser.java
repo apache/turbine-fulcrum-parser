@@ -247,15 +247,19 @@ public class DefaultParameterParser
     {
         String enc = request.getCharacterEncoding();
         
-        if (enc == null && !parserService.getParameterEncoding().equals(ParserService.PARAMETER_ENCODING_DEFAULT )) {
+        if (enc == null && !parserService.getParameterEncoding().equals(ParserService.PARAMETER_ENCODING_DEFAULT )) 
+        {
             try
             {  
                 // no-op if data was read (parameter, POST..) 
                 request.setCharacterEncoding( parserService.getParameterEncoding() );
                 enc = request.getCharacterEncoding();
-                if (enc != null) {
+                if (enc != null) 
+                {
                     getLogger().debug("Set the request encoding successfully to parameterEncoding of parser: "+enc );
-                } else {
+                } 
+                else 
+                {
                     getLogger().warn("Unsuccessfully (data read happened) tried to set the request encoding to "+ parserService.getParameterEncoding()  );
                 }
             }
@@ -311,6 +315,8 @@ public class DefaultParameterParser
     }
 
     /**
+     * @see org.apache.fulcrum.parser.ParameterParser#getPart(java.lang.String)
+     * 
      * Return a Part object for the given name.  If the name does
      * not exist or the object stored is not a Part, return null.
      *
@@ -337,12 +343,14 @@ public class DefaultParameterParser
     }
 
     /**
+     * @see org.apache.fulcrum.parser.ParameterParser#getParts(java.lang.String)
+     * 
      * Return an array of Part objects for the given name.  If the
      * name does not exist or the object stored is not a Part
      * array, return null.
      *
      * @param name A String with the name.
-     * @return A Part[].
+     * @return A Part[] 
      */
     @Override
     public Part[] getParts(String name)
@@ -357,6 +365,9 @@ public class DefaultParameterParser
         }
     }
     
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.ParameterParser#getParts()
+     */
     @Override
     public Collection<Part> getParts()
     {
@@ -367,22 +378,34 @@ public class DefaultParameterParser
 
     }
 
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.ParameterParser#getFileName(javax.servlet.http.Part)
+     */
     @Override
-    public String getFileName( Part part )
+    public String getFileName(Part part)
     {
         final String partHeader = part.getHeader("content-disposition");
-        Pattern regex = Pattern.compile("filename\\*?=\"?(.[^\"]+)\"?"); // rfc2183, rfc5987 quoted string, but attachments may have not?
-        for (String content : partHeader.split(";")) {
-            if (content.trim().contains( "filename" )) { // could also filename*=<encoding>''<value>
+        
+        // rfc2183, rfc5987 quoted string, but attachments may have not?
+        Pattern regex = Pattern.compile("filename\\*?=\"?(.[^\"]+)\"?");
+        
+        for (String content : partHeader.split(";")) 
+        {
+        	// could also filename*=<encoding>''<value>
+            if (content.trim().contains( "filename" )) 
+            { 
                 String fnTmp = "";
                 String srcStr = content.trim();
                 Matcher regexMatcher = regex.matcher(srcStr);
-                if (regexMatcher.find()) {
+                if (regexMatcher.find()) 
+                {
                     fnTmp = regexMatcher.group(1);
-                    if (getLogger().isDebugEnabled()) {
+                    if (getLogger().isDebugEnabled()) 
+                    {
                         getLogger().debug( "matched fileName:" + fnTmp );
                     }
-                } else { // last resort
+                } else { 
+                	// last resort
                     fnTmp  = srcStr.substring(srcStr.indexOf('=')+1).replace( "\"", "" );
                     getLogger().debug( "second fileName match:" + fnTmp );
                 }

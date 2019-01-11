@@ -118,7 +118,7 @@ public class DefaultParserService
     @Override
     public String convertAndTrim(String value, URLCaseFolding fold)
     {
-        if(value == null)
+        if (value == null)
         {
             return "";
         }
