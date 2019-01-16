@@ -40,6 +40,8 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.parser.pool.BaseValueParserFactory;
 import org.apache.fulcrum.parser.pool.BaseValueParserPool;
+import org.apache.fulcrum.parser.pool.CookieParserFactory;
+import org.apache.fulcrum.parser.pool.CookieParserPool;
 import org.apache.fulcrum.parser.pool.DefaultParameterParserFactory;
 import org.apache.fulcrum.parser.pool.DefaultParameterParserPool;
 
@@ -81,11 +83,16 @@ public class DefaultParserService
      * Use commons pool to manage parameter parsers 
      */
     private DefaultParameterParserPool parameterParserPool;
-    	
+
+    /** 
+     * Use commons pool to manage cookie parsers 
+     */
+    private CookieParserPool cookieParserPool;
+
     public DefaultParserService() 
     {
 		// Define the default configuration
-		GenericObjectPoolConfig config = new GenericObjectPoolConfig<>();
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
 		config.setMaxIdle(1);
 	    config.setMaxTotal(DEFAULT_POOL_CAPACITY);
 
@@ -96,9 +103,13 @@ public class DefaultParserService
 	    // init the pool
 	    parameterParserPool 
 	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
+	    
+	    // init the pool
+	    cookieParserPool 
+	    	= new CookieParserPool(new CookieParserFactory(), config);
     }
     
-    public DefaultParserService(GenericObjectPoolConfig config) 
+    public DefaultParserService(GenericObjectPoolConfig<?> config) 
     {
 	    // init the pool
 	    valueParserPool 
@@ -270,6 +281,17 @@ public class DefaultParserService
 				} catch (Exception e) {
 				}
             }
+            
+            if ( ppClass.equals(DefaultCookieParser.class) )
+            {
+				try {
+					DefaultCookieParser parserInstance = cookieParserPool.borrowObject();
+	            	vp = (P) parserInstance;
+				} catch (Exception e) {
+				}
+            }
+            
+            
             
             ((ParserServiceSupport)vp).setParserService(this);
             ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));

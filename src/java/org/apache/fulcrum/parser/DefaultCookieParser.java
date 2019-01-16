@@ -154,5 +154,10 @@ public class DefaultCookieParser
     {
         set (name, " ", AGE_DELETE);
     }
+    
+    public boolean isValid() 
+    {
+    	return true;
+    }
 
 }

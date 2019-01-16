@@ -100,4 +100,6 @@ public interface CookieParser
      * @param name the name of the cooking to unset
      */
     void unset (String name);
+
+	boolean isValid();
 }
