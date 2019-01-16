@@ -326,6 +326,10 @@ public class DefaultParserService
         	parameterParserPool.returnObject( (DefaultParameterParser) parser );
         }
 
+        if ( parser.getClass().isInstance(DefaultCookieParser.class) )
+        {
+        	cookieParserPool.returnObject( (DefaultCookieParser) parser );
+        }
     }
 
     /**
