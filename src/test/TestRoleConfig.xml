@@ -20,16 +20,6 @@
 <!-- This configuration file for Avalon components is used for testing the TestComponent -->
 <role-list>
     <role
-        name="org.apache.fulcrum.pool.PoolService"
-        shorthand="parser"
-        default-class="org.apache.fulcrum.pool.DefaultPoolService"
-    />
-    <role
-        name="org.apache.fulcrum.factory.FactoryService"
-        shorthand="parser"
-        default-class="org.apache.fulcrum.factory.DefaultFactoryService"
-    />
-    <role
         name="org.apache.fulcrum.parser.ParserService"
         shorthand="parser"
         default-class="org.apache.fulcrum.parser.DefaultParserService"

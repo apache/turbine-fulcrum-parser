@@ -39,7 +39,6 @@ import org.apache.avalon.framework.logger.LogEnabled;
 import org.apache.avalon.framework.logger.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.fulcrum.pool.Recyclable;
 
 /**
  * BaseValueParser is a base class for classes that need to parse
@@ -73,7 +72,7 @@ import org.apache.fulcrum.pool.Recyclable;
  */
 public class BaseValueParser
     implements ValueParser,
-               Recyclable, ParserServiceSupport, LogEnabled
+               ParserServiceSupport, LogEnabled
 {
     /** The ParserService instance to query for conversion and configuration */
     protected ParserService parserService;
@@ -168,7 +167,6 @@ public class BaseValueParser
     /**
      * Recycles the parser.
      */
-    @Override
     public void recycle()
     {
         recycle(DEFAULT_CHARACTER_ENCODING);
@@ -187,7 +185,6 @@ public class BaseValueParser
     /**
      * Disposes the parser.
      */
-    @Override
     public void dispose()
     {
         clear();
@@ -1622,7 +1619,6 @@ public class BaseValueParser
      *
      * @return true, if the object is disposed.
      */
-    @Override
     public boolean isDisposed()
     {
         return disposed;
@@ -1683,4 +1679,11 @@ public class BaseValueParser
     {
         return parserService.getUrlFolding();
     }
+
+	public boolean isValid() 
+	{
+		if ( this.characterEncoding != null && this.locale != null )
+			return true;
+		return false;
+	}
 }

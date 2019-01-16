@@ -37,8 +37,10 @@ import org.apache.avalon.framework.service.ServiceManager;
 import org.apache.avalon.framework.service.Serviceable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
-import org.apache.fulcrum.pool.PoolException;
-import org.apache.fulcrum.pool.PoolService;
+import org.apache.fulcrum.parser.pool.BaseValueParserFactory;
+import org.apache.fulcrum.parser.pool.BaseValueParserPool;
+import org.apache.fulcrum.parser.pool.DefaultParameterParserFactory;
+import org.apache.fulcrum.parser.pool.DefaultParameterParserPool;
 
 
 /**
@@ -64,10 +66,17 @@ public class DefaultParserService
      */
     private String parameterEncoding = PARAMETER_ENCODING_DEFAULT;
 
-    /**
-     * The pool service component to use
+    /** 
+     * Use commons pool to manage value parsers 
      */
-    private PoolService poolService = null;
+    private BaseValueParserPool valueParserPool 
+    	= new BaseValueParserPool(new BaseValueParserFactory());
+
+    /** 
+     * Use commons pool to manage parameter parsers 
+     */
+    private DefaultParameterParserPool parameterParserPool 
+    	= new DefaultParameterParserPool(new DefaultParameterParserFactory());
 
     /**
      * Get the character encoding that will be used by this ValueParser.
@@ -203,30 +212,35 @@ public class DefaultParserService
      *
      * @throws InstantiationException if the instance could not be created
      */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public <P extends ValueParser> P getParser(Class<P> ppClass) throws InstantiationException
     {
         P vp = null;
 
         try
         {
-            @SuppressWarnings("unchecked") // Until PoolService is generified
-            P parserInstance = (P) poolService.getInstance(ppClass);
-            vp = parserInstance;
-
-            if (vp instanceof ParserServiceSupport)
+            if ( ppClass.equals(BaseValueParser.class) )
             {
-                ((ParserServiceSupport)vp).setParserService(this);
+            	BaseValueParser parserInstance;
+				try {
+					parserInstance = valueParserPool.borrowObject();
+					vp = (P) parserInstance;
+				} catch (Exception e) {
+				}
             }
 
-            if (vp instanceof LogEnabled)
+            if ( ppClass.equals(DefaultParameterParser.class) )
             {
-                ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));
+				try {
+	            	DefaultParameterParser parserInstance = parameterParserPool.borrowObject();
+	            	vp = (P) parserInstance;
+				} catch (Exception e) {
+				}
             }
-        }
-        catch (PoolException pe)
-        {
-            throw new InstantiationException("Parser class '" + ppClass + "' is illegal. " + pe.getMessage());
+            
+            ((ParserServiceSupport)vp).setParserService(this);
+            ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));
         }
         catch (ClassCastException x)
         {
@@ -247,7 +261,17 @@ public class DefaultParserService
     public void putParser(ValueParser parser)
     {
         parser.clear();
-        poolService.putInstance(parser);
+        
+        if ( parser.getClass().isInstance(BaseValueParser.class) )
+        {
+			valueParserPool.returnObject( (BaseValueParser) parser );
+        }
+
+        if ( parser.getClass().isInstance(DefaultParameterParser.class) )
+        {
+        	parameterParserPool.returnObject( (DefaultParameterParser) parser );
+        }
+
     }
 
     /**
@@ -296,15 +320,15 @@ public class DefaultParserService
     @Override
     public void service(ServiceManager manager) throws ServiceException
     {
-        if (manager.hasService(PoolService.ROLE))
-        {
-            poolService = (PoolService)manager.lookup(PoolService.ROLE);
-        }
-        else
-        {
-            throw new ServiceException(ParserService.ROLE,
-                    "Service requires " +
-                    PoolService.ROLE + " to be available");
-        }
+//        if (manager.hasService(PoolService.ROLE))
+//        {
+//            poolService = (PoolService)manager.lookup(PoolService.ROLE);
+//        }
+//        else
+//        {
+//            throw new ServiceException(ParserService.ROLE,
+//                    "Service requires " +
+//                    PoolService.ROLE + " to be available");
+//        }
     }
 }
