@@ -36,6 +36,7 @@ import org.apache.avalon.framework.service.ServiceException;
 import org.apache.avalon.framework.service.ServiceManager;
 import org.apache.avalon.framework.service.Serviceable;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.parser.pool.BaseValueParserFactory;
 import org.apache.fulcrum.parser.pool.BaseValueParserPool;
@@ -65,19 +66,50 @@ public class DefaultParserService
      * The parameter encoding to use when parsing parameter strings
      */
     private String parameterEncoding = PARAMETER_ENCODING_DEFAULT;
+    
+    /**
+     * The default pool capacity.
+     */
+    int DEFAULT_POOL_CAPACITY = 1024;
 
     /** 
      * Use commons pool to manage value parsers 
      */
-    private BaseValueParserPool valueParserPool 
-    	= new BaseValueParserPool(new BaseValueParserFactory());
+    private BaseValueParserPool valueParserPool;
 
     /** 
      * Use commons pool to manage parameter parsers 
      */
-    private DefaultParameterParserPool parameterParserPool 
-    	= new DefaultParameterParserPool(new DefaultParameterParserFactory());
+    private DefaultParameterParserPool parameterParserPool;
+    	
+    public DefaultParserService() 
+    {
+		// Define the default configuration
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig<>();
+		config.setMaxIdle(1);
+	    config.setMaxTotal(DEFAULT_POOL_CAPACITY);
 
+	    // init the pool
+	    valueParserPool 
+    		= new BaseValueParserPool(new BaseValueParserFactory(), config);
+
+	    // init the pool
+	    parameterParserPool 
+	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
+    }
+    
+    public DefaultParserService(GenericObjectPoolConfig config) 
+    {
+	    // init the pool
+	    valueParserPool 
+    		= new BaseValueParserPool(new BaseValueParserFactory(), config);
+
+	    // init the pool
+	    parameterParserPool 
+	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
+    }
+
+    
     /**
      * Get the character encoding that will be used by this ValueParser.
      */
