@@ -1682,8 +1682,10 @@ public class BaseValueParser
 
 	public boolean isValid() 
 	{
-		if ( this.characterEncoding != null && this.locale != null )
-			return true;
-		return false;
+    	if ( this.parameters.size() == 0 )
+    	{
+    		return true;
+    	}
+    	return false;
 	}
 }

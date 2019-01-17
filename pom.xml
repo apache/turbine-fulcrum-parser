@@ -70,6 +70,15 @@
         <role>Java Developer</role>
       </roles>
     </developer>
+    <developer>
+      <name>Jeffery Painter</name>
+      <id>painter</id>
+      <email>painter@apache.org</email>
+      <organization />
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
   </developers>
 
   <dependencies>

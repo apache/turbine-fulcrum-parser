@@ -42,9 +42,6 @@
       The component uses the following services from the Fulcrum Repository
       <ul>
         <li>
-          <a href="http://turbine.apache.org/fulcrum/fulcrum-pool/">Fulcrum Pool Service</a>
-        </li>
-        <li>
           <a href="http://turbine.apache.org/fulcrum/fulcrum-upload/">Fulcrum Upload Service</a>
           (optional)
         </li>

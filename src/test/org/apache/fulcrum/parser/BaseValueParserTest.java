@@ -74,6 +74,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parserService.putParser(parser);
         this.release(parserService);
     }
+    
     @Test
     public void testDate()
     {

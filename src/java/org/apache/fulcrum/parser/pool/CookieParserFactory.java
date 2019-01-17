@@ -22,12 +22,11 @@ package org.apache.fulcrum.parser.pool;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import org.apache.fulcrum.parser.CookieParser;
 import org.apache.fulcrum.parser.DefaultCookieParser;
 
 
 /**
- * Factory to create {@link org.apache.fulcrum.parser.CookieParser} objects
+ * Factory to create {@link org.apache.fulcrum.parser.DefaultCookieParser} objects
  *
  * @author <a href="mailto:painter@apache.org">Jeffery Painter</a>
  * @version $Id: CookieParserFactory.java 1851080 2019-01-16 12:07:00Z painter $

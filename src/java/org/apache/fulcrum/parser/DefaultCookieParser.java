@@ -169,7 +169,7 @@ public class DefaultCookieParser
      */
     public boolean isValid() 
     {
-    	if ( this.request == null )
+    	if ( this.parameters.size() == 0 )
     	{
     		return true;
     	}
