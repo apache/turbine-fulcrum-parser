@@ -107,14 +107,17 @@ public class DefaultCookieParser
         setCharacterEncoding(enc != null ? enc : "US-ASCII");
 
         Cookie[] cookies = request.getCookies();
-        getLogger().debug ("Number of Cookies "+cookies.length);
-
-        for (Cookie cookie : cookies)
+        if ( cookies != null )
         {
-            String name = convert(cookie.getName());
-            String value = cookie.getValue();
-            getLogger().debug ("Adding " + name + "=" + value);
-            add(name, value);
+	        getLogger().debug ("Number of Cookies "+cookies.length);
+	
+	        for (Cookie cookie : cookies)
+	        {
+	            String name = convert(cookie.getName());
+	            String value = cookie.getValue();
+	            getLogger().debug ("Adding " + name + "=" + value);
+	            add(name, value);
+	        }
         }
 
         this.request = request;
@@ -127,14 +130,16 @@ public class DefaultCookieParser
      */
     public void set (String name, String value)
     {
-        set (name, value, AGE_SESSION);
+        set(name, value, AGE_SESSION);
     }
 
-    /**
-     * Set a persisten cookie on the client that will expire
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.CookieParser#set(java.lang.String, java.lang.String, int)
+	 *
+     * Set a persistent cookie on the client that will expire
      * after a maximum age (given in seconds).
      */
-    public void set (String name, String value, int seconds_age)
+    public void set(String name, String value, int seconds_age)
     {
         if (response == null)
         {
@@ -146,18 +151,29 @@ public class DefaultCookieParser
         cookie.setPath(request.getServletPath());
         response.addCookie(cookie);
     }
+    
 
-    /**
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.CookieParser#unset(java.lang.String)
+     * 
      * Remove a previously set cookie from the client machine.
+     * 
      */
-    public void unset (String name)
+    public void unset(String name)
     {
-        set (name, " ", AGE_DELETE);
+        set(name, " ", AGE_DELETE);
     }
     
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.BaseValueParser#isValid()
+     */
     public boolean isValid() 
     {
-    	return true;
+    	if ( this.request == null )
+    	{
+    		return true;
+    	}
+    	return false;
     }
 
 }
