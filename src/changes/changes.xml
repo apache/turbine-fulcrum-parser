@@ -24,7 +24,7 @@
     <body>
         <release version="2.0.0" date="in SVN">
           <action dev="painter" type="update">
-            Remove dependency on fulcrum-pool and use commons-pool2 v2.6.0 instead
+            Remove dependency on fulcrum-pool and use commons-pool2 v2.6.1 instead
           </action>
           <action dev="gk" type="update">
             Added tests for getParts()
