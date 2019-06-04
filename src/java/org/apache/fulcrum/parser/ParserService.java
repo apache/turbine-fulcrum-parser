@@ -50,6 +50,8 @@ public interface ParserService
 
     /** Parse file upload items automatically */
     String AUTOMATIC_KEY = "automaticUpload";
+    
+    String POOL_KEY = "pool";
 
     /**
      * <p> The default value of 'automaticUpload' property
@@ -61,6 +63,18 @@ public interface ParserService
      * parseRequest} manually.
      */
     boolean AUTOMATIC_DEFAULT = false;
+    
+    /**
+     * <p> The default value of 'maxTotal' property in 'pool'
+     * (<code>1024</code>). The default pool capacity.
+     */
+    int DEFAULT_POOL_CAPACITY = 1024;
+    
+    /**
+     * <p> The default value of 'maxIdle' property in 'pool'
+     * (<code>2</code>). The default maximum idle object.
+     */
+    int DEFAULT_MAX_IDLE = 2;
 
     /**
      * Get the parameter encoding that has been configured as default for

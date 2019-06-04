@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.turbine</groupId>
     <artifactId>turbine-parent</artifactId>
-    <version>5</version>
+    <version>6-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>

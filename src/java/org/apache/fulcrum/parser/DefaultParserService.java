@@ -68,11 +68,6 @@ public class DefaultParserService
      * The parameter encoding to use when parsing parameter strings
      */
     private String parameterEncoding = PARAMETER_ENCODING_DEFAULT;
-    
-    /**
-     * The default pool capacity.
-     */
-    int DEFAULT_POOL_CAPACITY = 1024;
 
     /** 
      * Use commons pool to manage value parsers 
@@ -93,7 +88,7 @@ public class DefaultParserService
     {
 		// Define the default configuration
 		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
-		config.setMaxIdle(1);
+		config.setMaxIdle(DEFAULT_MAX_IDLE);
 	    config.setMaxTotal(DEFAULT_POOL_CAPACITY);
 
 	    // init the pool
@@ -115,7 +110,6 @@ public class DefaultParserService
 	    valueParserPool 
     		= new BaseValueParserPool(new BaseValueParserFactory(), config);
 
-	    // init the pool
 	    parameterParserPool 
 	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
     }
@@ -364,7 +358,47 @@ public class DefaultParserService
                             .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();
 
         automaticUpload = conf.getChild(AUTOMATIC_KEY).getValueAsBoolean(AUTOMATIC_DEFAULT);
-
+       
+        
+        Configuration[] poolChildren = conf.getChild(POOL_KEY).getChildren();
+        if (poolChildren.length > 0) {
+            GenericObjectPoolConfig genObjPoolConfig = new GenericObjectPoolConfig();
+            genObjPoolConfig.setMaxIdle(DEFAULT_MAX_IDLE);
+            genObjPoolConfig.setMaxTotal(DEFAULT_POOL_CAPACITY);
+            for (Configuration poolConf : poolChildren) {
+                // use common pool2 configuration names
+                switch (poolConf.getName()) {
+                case "maxTotal":
+                    int defaultCapacity = poolConf.getValueAsInteger();
+                    genObjPoolConfig.setMaxTotal(defaultCapacity);
+                    break;
+                case "maxWaitMillis":
+                    int maxWaitMillis = poolConf.getValueAsInteger();
+                    genObjPoolConfig.setMaxWaitMillis(maxWaitMillis);
+                    break;
+                case "blockWhenExhausted":
+                    boolean blockWhenExhausted = poolConf.getValueAsBoolean();
+                    genObjPoolConfig.setBlockWhenExhausted(blockWhenExhausted);
+                    break;
+                case "maxIdle":
+                    int maxIdle = poolConf.getValueAsInteger();
+                    genObjPoolConfig.setMaxIdle(maxIdle);
+                    break;
+                case "minIdle":
+                    int minIdle = poolConf.getValueAsInteger();
+                    genObjPoolConfig.setMinIdle(minIdle);
+                    break;
+                default:
+                    break;
+                }  
+            }    
+            // reinit the pools
+            valueParserPool.setConfig(genObjPoolConfig);
+            parameterParserPool.setConfig(genObjPoolConfig);
+            cookieParserPool.setConfig(genObjPoolConfig);
+        }
+        
+        getLogger().debug(valueParserPool.toString());
     }
 
     // ---------------- Avalon Lifecycle Methods ---------------------
@@ -378,6 +412,7 @@ public class DefaultParserService
     @Override
     public void service(ServiceManager manager) throws ServiceException
     {
+        // no need to call internal service
 //        if (manager.hasService(PoolService.ROLE))
 //        {
 //            poolService = (PoolService)manager.lookup(PoolService.ROLE);
