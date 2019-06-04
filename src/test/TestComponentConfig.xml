@@ -21,11 +21,11 @@
     <parser>
 		<parameterEncoding>utf-8</parameterEncoding>
 		<automaticUpload>true</automaticUpload>
-		<pool>
+		<pool2>
            <!--  cft. defaults in org.apache.commons.pool2.impl.BaseObjectPoolConfig and GenericKeyedObjectPoolConfig -->
 		   <maxTotal>2048</maxTotal>
 		   <blockWhenExhausted>false</blockWhenExhausted>
 		   <maxWaitMillis>100</maxWaitMillis>
-		</pool>
+		</pool2>
     </parser>
 </componentConfig>

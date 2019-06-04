@@ -51,7 +51,8 @@ public interface ParserService
     /** Parse file upload items automatically */
     String AUTOMATIC_KEY = "automaticUpload";
     
-    String POOL_KEY = "pool";
+    /** commons pool2 parameters */
+    String POOL_KEY = "pool2";
 
     /**
      * <p> The default value of 'automaticUpload' property
