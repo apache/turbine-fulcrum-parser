@@ -70,7 +70,9 @@ public class CookieParserPoolTest extends BaseUnit5Test
     @AfterEach
     public void tearDown()
     {
-        parserService.putParser(parser);
+        // pool object already explicitely released by call to returnObject in test
+        // will throw java.lang.IllegalStateException, as pool is external to parserService
+        //parserService.putParser(parser);
         this.release(parserService);
     }
     

@@ -313,16 +313,21 @@ public class DefaultParserService
         if ( parser.getClass().isInstance(BaseValueParser.class) )
         {
 			valueParserPool.returnObject( (BaseValueParser) parser );
-        }
-
-        if ( parser.getClass().isInstance(DefaultParameterParser.class) )
+			
+        } else if ( parser.getClass().isInstance(DefaultParameterParser.class) ||
+                parser instanceof DefaultParameterParser)
         {
         	parameterParserPool.returnObject( (DefaultParameterParser) parser );
-        }
-
-        if ( parser.getClass().isInstance(DefaultCookieParser.class) )
+        	
+        } else if ( parser.getClass().isInstance(DefaultCookieParser.class) ||
+                parser instanceof DefaultCookieParser)
         {
         	cookieParserPool.returnObject( (DefaultCookieParser) parser );
+        	
+        } else {
+            // log
+            getLogger().warn(parser.getClass() + " could not be put back into any pool exhausting some pool");
+            // log even borrowed count of each pool?: cookieParserPool.getBorrowedCount())
         }
     }
 
