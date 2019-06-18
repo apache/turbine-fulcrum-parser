@@ -93,6 +93,15 @@
             available to parse the request.
           </td>
         </tr>
+        <tr>
+          <td>pool2</td>
+          <td>list</td>
+          <td>*</td>
+          <td>
+            Wrapper for commons pool2 parameters (child components) <code>maxTotal</code>, 
+            <code>blockWhenExhausted</code>, <code>maxWaitMillis</code>, <code>maxIdle</code> and <code>minIdle</code>. The parameter values are the same as for commons.pool2, compare the defaults <a href="https://commons.apache.org/proper/commons-pool/apidocs/constant-values.html">here</a> for org.apache.commons.pool2.impl.BaseObjectPoolConfig and GenericKeyedObjectPoolConfig.
+          </td>
+        </tr>
       </table>
     </subsection>
 
@@ -102,9 +111,15 @@
     <urlCaseFolding>lower</urlCaseFolding>
     <parameterEncoding>utf-8</parameterEncoding>
     <automaticUpload>true</automaticUpload>
+    <pool2>
+         <maxTotal>2048</maxTotal><!--  default 8 -->
+         <blockWhenExhausted>true</blockWhenExhausted><!--  default is true -->
+         <maxWaitMillis>350</maxWaitMillis><!--  default is -1L -->
+    </pool2>
 </parser>
 ]]></source>
     </subsection>
+    
   </section>
 
   <section name="Usage">
