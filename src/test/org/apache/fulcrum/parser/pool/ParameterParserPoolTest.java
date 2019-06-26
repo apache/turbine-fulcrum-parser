@@ -68,7 +68,7 @@ public class ParameterParserPoolTest extends BaseUnit5Test
 
     	    // init the pool
     	    parameterParserPool 
-    	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);;
+    	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
 
         }
         catch (ComponentException e)
@@ -111,7 +111,6 @@ public class ParameterParserPoolTest extends BaseUnit5Test
     		assertTrue(parser.isValid());
     		
     		parameterParserPool.returnObject( parser );
-    		
     	} catch ( Exception e )
     	{
     		e.printStackTrace();

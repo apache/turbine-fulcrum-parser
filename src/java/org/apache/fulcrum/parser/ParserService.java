@@ -51,6 +51,12 @@ public interface ParserService
     /** Parse file upload items automatically */
     String AUTOMATIC_KEY = "automaticUpload";
     
+    /** fulcrum pool by default false */
+    boolean FULCRUM_POOL_DEFAULT = false;
+    
+    /** fulcrum pool activation parameter */
+    String FULCRUM_POOL_KEY = "fulcrumPool";
+    
     /** commons pool2 parameters */
     String POOL_KEY = "pool2";
 

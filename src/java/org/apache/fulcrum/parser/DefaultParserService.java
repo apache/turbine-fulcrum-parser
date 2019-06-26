@@ -44,10 +44,12 @@ import org.apache.fulcrum.parser.pool.CookieParserFactory;
 import org.apache.fulcrum.parser.pool.CookieParserPool;
 import org.apache.fulcrum.parser.pool.DefaultParameterParserFactory;
 import org.apache.fulcrum.parser.pool.DefaultParameterParserPool;
+import org.apache.fulcrum.pool.PoolException;
+import org.apache.fulcrum.pool.PoolService;
 
 
 /**
- * The DefaultParserService provides the efault implementation
+ * The DefaultParserService provides the default implementation
  * of a {@link ParserService}.
  *
  * @author <a href="mailto:tv@apache.org">Thomas Vandahl</a>
@@ -58,6 +60,7 @@ public class DefaultParserService
     implements ParserService,
                Configurable, Serviceable
 {
+
     /** The folding from the configuration */
     private URLCaseFolding folding = URLCaseFolding.NONE;
 
@@ -68,6 +71,18 @@ public class DefaultParserService
      * The parameter encoding to use when parsing parameter strings
      */
     private String parameterEncoding = PARAMETER_ENCODING_DEFAULT;
+    
+    /**
+     * reintroduced fulcrum, may be used in the case, that 
+     * commons pool2 is not configured exactly as needed properly as fast fall back.
+     */
+    private boolean useFulcrumPool = FULCRUM_POOL_DEFAULT;
+    
+    
+    /**
+     * The Fulcrum pool service component to use (optional), by default it is deactivated and commons pool is used.
+     */
+    private PoolService fulcrumPoolService = null;
 
     /** 
      * Use commons pool to manage value parsers 
@@ -84,24 +99,9 @@ public class DefaultParserService
      */
     private CookieParserPool cookieParserPool;
 
+
     public DefaultParserService() 
     {
-		// Define the default configuration
-		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
-		config.setMaxIdle(DEFAULT_MAX_IDLE);
-	    config.setMaxTotal(DEFAULT_POOL_CAPACITY);
-
-	    // init the pool
-	    valueParserPool 
-    		= new BaseValueParserPool(new BaseValueParserFactory(), config);
-
-	    // init the pool
-	    parameterParserPool 
-	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
-	    
-	    // init the pool
-	    cookieParserPool 
-	    	= new CookieParserPool(new CookieParserFactory(), config);
     }
     
     public DefaultParserService(GenericObjectPoolConfig<?> config) 
@@ -257,38 +257,78 @@ public class DefaultParserService
 
         try
         {
-            if ( ppClass.equals(BaseValueParser.class) )
+            if (useFulcrumPool) {
+                try
+                {
+                    P parserInstance = (P) fulcrumPoolService.getInstance(ppClass);
+                    vp = parserInstance;
+                }
+                catch (PoolException pe)
+                {
+                    throw new InstantiationException("Parser class '" + ppClass + "' is illegal. " + pe.getMessage());
+                }
+            } else if ( ppClass.equals(BaseValueParser.class) )
             {
-            	BaseValueParser parserInstance;
+            	BaseValueParser parserInstance = null;
 				try {
-					parserInstance = valueParserPool.borrowObject();
+				    parserInstance = valueParserPool.borrowObject();
 					vp = (P) parserInstance;
+					if (vp == null) {
+                        throw new InstantiationException("Could not borrow object from pool: " + valueParserPool);
+                    }
 				} catch (Exception e) {
+                    try {
+                        valueParserPool.invalidateObject(parserInstance);
+                        parserInstance = null;
+                    } catch (Exception e1) {
+                        throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
+                    }
 				}
-            }
-
-            if ( ppClass.equals(DefaultParameterParser.class) )
+            } else if ( ppClass.equals(DefaultParameterParser.class) )
             {
-				try {
-	            	DefaultParameterParser parserInstance = parameterParserPool.borrowObject();
-	            	vp = (P) parserInstance;
-				} catch (Exception e) {
-				}
-            }
-            
-            if ( ppClass.equals(DefaultCookieParser.class) )
+                DefaultParameterParser parserInstance = null;
+                try {
+                    parserInstance = parameterParserPool.borrowObject();
+                	vp = (P) parserInstance;
+                	if (vp == null) {
+                        throw new InstantiationException("Could not borrow object from pool: " + parameterParserPool);
+                    }
+                } catch (Exception e) {
+                    try {
+                        parameterParserPool.invalidateObject(parserInstance);
+                        parserInstance = null;
+                    } catch (Exception e1) {
+                        throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
+                    }
+                }
+            } else if ( ppClass.equals(DefaultCookieParser.class) )
             {
-				try {
-					DefaultCookieParser parserInstance = cookieParserPool.borrowObject();
-	            	vp = (P) parserInstance;
-				} catch (Exception e) {
-				}
+                DefaultCookieParser parserInstance = null;
+                try {
+                    parserInstance = cookieParserPool.borrowObject();
+                	vp = (P) parserInstance;
+                    if (vp == null) {
+                          throw new InstantiationException("Could not borrow object from pool: " + cookieParserPool);
+                    }
+                } catch (Exception e) {
+                    try {
+                        cookieParserPool.invalidateObject(parserInstance);
+                        parserInstance = null;
+                    } catch (Exception e1) {
+                        throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
+                    }
+                }
             }
             
-            
-            
-            ((ParserServiceSupport)vp).setParserService(this);
-            ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));
+            if (vp != null && vp instanceof ParserServiceSupport ) {
+                ((ParserServiceSupport)vp).setParserService(this);
+            } else {
+                throw new InstantiationException("Could not set parser");
+            }
+            if (vp instanceof LogEnabled) 
+            {
+                ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));
+            }
         }
         catch (ClassCastException x)
         {
@@ -302,6 +342,8 @@ public class DefaultParserService
      * Clears the parse and puts it back into
      * the pool service. This allows for pooling 
      * and recycling
+     * 
+     * As we are not yet using org.apache.fulcrum.pool.Recyclable, we call insteda {@link ValueParser#dispose()}.
      *
      * @param parser The value parser to use
      */
@@ -309,26 +351,31 @@ public class DefaultParserService
     public void putParser(ValueParser parser)
     {
         parser.clear();
-        
-        if ( parser.getClass().isInstance(BaseValueParser.class) )
+        parser.dispose(); 
+    
+        if (useFulcrumPool) {
+            
+            fulcrumPoolService.putInstance(parser);
+            
+        } else if( parser.getClass().equals(BaseValueParser.class) )
         {
-			valueParserPool.returnObject( (BaseValueParser) parser );
-			
-        } else if ( parser.getClass().isInstance(DefaultParameterParser.class) ||
+            valueParserPool.returnObject( (BaseValueParser) parser );
+        
+        } else if ( parser.getClass().equals(DefaultParameterParser.class) ||
                 parser instanceof DefaultParameterParser)
         {
-        	parameterParserPool.returnObject( (DefaultParameterParser) parser );
+            parameterParserPool.returnObject( (DefaultParameterParser) parser );
         	
-        } else if ( parser.getClass().isInstance(DefaultCookieParser.class) ||
+        } else if ( parser.getClass().equals(DefaultCookieParser.class) ||
                 parser instanceof DefaultCookieParser)
         {
-        	cookieParserPool.returnObject( (DefaultCookieParser) parser );
+            cookieParserPool.returnObject( (DefaultCookieParser) parser );
         	
         } else {
             // log
             getLogger().warn(parser.getClass() + " could not be put back into any pool exhausting some pool");
             // log even borrowed count of each pool?: cookieParserPool.getBorrowedCount())
-        }
+            }
     }
 
     /**
@@ -363,7 +410,44 @@ public class DefaultParserService
                             .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();
 
         automaticUpload = conf.getChild(AUTOMATIC_KEY).getValueAsBoolean(AUTOMATIC_DEFAULT);
-       
+        
+        useFulcrumPool = conf.getChild(FULCRUM_POOL_KEY).getValueAsBoolean(FULCRUM_POOL_DEFAULT);
+        
+        if (useFulcrumPool) {
+            if (fulcrumPoolService == null) 
+            {
+                    // only for fulcrum  pool, need to call internal service, if role pool service is set
+                    throw new ConfigurationException("Fulcrum Pool is activated", new ServiceException(ParserService.ROLE,
+                            "Fulcrum enabled Pool Service requires " +
+                            PoolService.ROLE + " to be available"));
+            }
+            getLogger().info("Using Fulcrum Pool Service: "+ fulcrumPoolService);
+        } else {
+            // reset not used fulcrum pool
+            fulcrumPoolService = null;
+            
+            // Define the default configuration
+            GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+            config.setMaxIdle(DEFAULT_MAX_IDLE);
+            config.setMaxTotal(DEFAULT_POOL_CAPACITY);
+
+            // init the pool
+            valueParserPool 
+                = new BaseValueParserPool(new BaseValueParserFactory(), config);
+
+            // init the pool
+            parameterParserPool 
+                = new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
+            
+            // init the pool
+            cookieParserPool 
+                = new CookieParserPool(new CookieParserFactory(), config);
+            
+            getLogger().info("Init Commons2 Fulcrum Pool Services.." );
+            getLogger().info(valueParserPool.getClass().getName());
+            getLogger().info(parameterParserPool.getClass().getName());
+            getLogger().info(cookieParserPool.getClass().getName());
+        }
         
         Configuration[] poolChildren = conf.getChild(POOL_KEY).getChildren();
         if (poolChildren.length > 0) {
@@ -393,7 +477,20 @@ public class DefaultParserService
                     int minIdle = poolConf.getValueAsInteger();
                     genObjPoolConfig.setMinIdle(minIdle);
                     break;
+                case "testOnReturn":
+                    boolean testOnReturn = poolConf.getValueAsBoolean();
+                    genObjPoolConfig.setTestOnReturn(testOnReturn);
+                    break;
+                case "testOnBorrow":
+                    boolean testOnBorrow = poolConf.getValueAsBoolean();
+                    genObjPoolConfig.setTestOnBorrow(testOnBorrow);
+                    break;
+                case "testOnCreate":
+                    boolean testOnCreate = poolConf.getValueAsBoolean();
+                    genObjPoolConfig.setTestOnCreate(testOnCreate);
+                    break;
                 default:
+                    
                     break;
                 }  
             }    
@@ -401,9 +498,12 @@ public class DefaultParserService
             valueParserPool.setConfig(genObjPoolConfig);
             parameterParserPool.setConfig(genObjPoolConfig);
             cookieParserPool.setConfig(genObjPoolConfig);
+            
+            getLogger().debug(valueParserPool.toString());
+            getLogger().debug(parameterParserPool.toString());
+            getLogger().debug(cookieParserPool.toString());
         }
-        
-        getLogger().debug(valueParserPool.toString());
+                
     }
 
     // ---------------- Avalon Lifecycle Methods ---------------------
@@ -417,16 +517,11 @@ public class DefaultParserService
     @Override
     public void service(ServiceManager manager) throws ServiceException
     {
-        // no need to call internal service
-//        if (manager.hasService(PoolService.ROLE))
-//        {
-//            poolService = (PoolService)manager.lookup(PoolService.ROLE);
-//        }
-//        else
-//        {
-//            throw new ServiceException(ParserService.ROLE,
-//                    "Service requires " +
-//                    PoolService.ROLE + " to be available");
-//        }
+        // only for fulcrum  pool, need to call internal service, if role pool service is set
+        if (manager.hasService(PoolService.ROLE))
+        {
+            fulcrumPoolService = (PoolService)manager.lookup(PoolService.ROLE);
+        } 
+        // no check here, until configuration is read
     }
 }

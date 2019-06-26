@@ -29,7 +29,7 @@ import javax.servlet.http.Part;
 import org.apache.avalon.framework.component.ComponentException;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.testcontainer.BaseUnit5Test;
-
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,84 +43,85 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class ParameterParserTest extends BaseUnit5Test
 {
-    private ParameterParser parameterParser = null;
+    protected ParameterParser parameterParser = null;
     
-    private Part mockTest;
+    protected ParserService parserService = null;
+    
+    protected Part mockTest = new Part()
+    {
+
+        @Override
+        public void write(String fileName) throws IOException
+        {
+        }
+
+        @Override
+        public String getSubmittedFileName()
+        {
+            return null;
+        }
+
+        @Override
+        public long getSize()
+        {
+            return 0;
+        }
+
+        @Override
+        public String getName()
+        {
+            return "upload-field";
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException
+        {
+            return null;
+        }
+
+        @Override
+        public Collection<String> getHeaders(String name)
+        {
+            return null;
+        }
+
+        @Override
+        public Collection<String> getHeaderNames()
+        {
+            return null;
+        }
+
+        @Override
+        public String getHeader(String name)
+        {
+            if (name.equals( "content-disposition")) {
+                //return "form-data; name=\"file\"; filename*=utf-8''%c2%a3%20uploadedFileName.ext";
+                //return "attachment; filename=genome.jpeg;";
+                return "form-data; name=\"file\"; filename=\"uploadedFileName.ext\"";
+            }
+            return null;
+        }
+
+        @Override
+        public String getContentType()
+        {
+            return "application/octet-stream";
+        }
+
+        @Override
+        public void delete() throws IOException
+        {
+        }
+    };
 
     @BeforeEach
     public void setUpBefore() throws Exception
     {
         try
         {
-            ParserService parserService = (ParserService)this.lookup(ParserService.ROLE);
+            parserService = (ParserService)this.lookup(ParserService.ROLE);
             parameterParser = parserService.getParser(DefaultParameterParser.class);
             
-            mockTest = new Part()
-            {
-
-                @Override
-                public void write(String fileName) throws IOException
-                {
-                }
-
-                @Override
-                public String getSubmittedFileName()
-                {
-                    return null;
-                }
-
-                @Override
-                public long getSize()
-                {
-                    return 0;
-                }
-
-                @Override
-                public String getName()
-                {
-                    return "upload-field";
-                }
-
-                @Override
-                public InputStream getInputStream() throws IOException
-                {
-                    return null;
-                }
-
-                @Override
-                public Collection<String> getHeaders(String name)
-                {
-                    return null;
-                }
-
-                @Override
-                public Collection<String> getHeaderNames()
-                {
-                    return null;
-                }
-
-                @Override
-                public String getHeader(String name)
-                {
-                    if (name.equals( "content-disposition")) {
-                        //return "form-data; name=\"file\"; filename*=utf-8''%c2%a3%20uploadedFileName.ext";
-                        //return "attachment; filename=genome.jpeg;";
-                        return "form-data; name=\"file\"; filename=\"uploadedFileName.ext\"";
-                    }
-                    return null;
-                }
-
-                @Override
-                public String getContentType()
-                {
-                    return "application/octet-stream";
-                }
-
-                @Override
-                public void delete() throws IOException
-                {
-                }
-            };
         }
         catch (ComponentException e)
         {
@@ -129,6 +130,16 @@ public class ParameterParserTest extends BaseUnit5Test
         }
     }
 
+    /**
+     * Clean up after each test is run.
+     */
+    @AfterEach
+    public void tearDown()
+    {
+        parserService.putParser(parameterParser);
+        this.release(parserService);
+    }
+    
     /**
      * Simple test to verify the current configuration of URL Case Folding
      * 

@@ -84,7 +84,8 @@ public class BaseValueParserPoolTest extends BaseUnit5Test
     @AfterEach
     public void tearDown()
     {
-        parserService.putParser(parser);
+        // parser is explicitely returned from valueParserPool.
+        //parserService.putParser(parser);
         this.release(parserService);
     }
     

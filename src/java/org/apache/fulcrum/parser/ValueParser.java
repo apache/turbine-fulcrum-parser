@@ -72,6 +72,14 @@ public interface ValueParser extends Iterable<String>
      * Clear all name/value pairs out of this object.
      */
     void clear();
+    
+    /**
+     * Dispose all references of this object. 
+     * 
+     * Instead of  org.apache.fulcrum.pool.Recyclable interface we use this, 
+     * may change this again..
+     */
+    void dispose();
 
     /**
      * Set the character encoding that will be used by this ValueParser.
