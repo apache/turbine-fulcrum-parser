@@ -22,7 +22,19 @@
     </properties>
 
     <body>
-        <release version="2.0.0" date="in SVN">
+       <release version="2.0.1" date="in SVN">
+        <action dev="gk" type="update" date="2019-25-06">
+            - use optional Fulcrum Pool (without Recycable feature) again as fallback
+            - fix bug in parser resources (using new dispose method from ValueParser instead of same method in Fulcrum Pool Recycable 
+            - add + fix tests
+            - update commons pool2 version to 2.6.2
+          </action>
+           <action dev="gk" type="update" date="2019-04-06">
+            - rename config param name pool2 be more precise and avoiding name clash with fulcrum pool.
+            - allow more pool2 configuration (overwrite common-pool defaults)
+          </action>
+       </release>
+        <release version="2.0.0" date="2019-18-03">
           <action dev="painter" type="update">
             Remove dependency on fulcrum-pool and use commons-pool2 v2.6.1 instead
           </action>
