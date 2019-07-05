@@ -123,6 +123,14 @@ public class DefaultParserService
     {
         return parameterEncoding;
     }
+    
+    /**
+     * Set the character encoding that will be used by this ValueParser.
+     */
+    public void setParameterEncoding(String encoding)
+    {
+        parameterEncoding = encoding;
+    }
 
     /**
      * Trims the string data and applies the conversion specified in
@@ -443,7 +451,7 @@ public class DefaultParserService
             cookieParserPool 
                 = new CookieParserPool(new CookieParserFactory(), config);
             
-            getLogger().info("Init Commons2 Fulcrum Pool Services.." );
+            getLogger().info("Init Commons2 Pool Services.." );
             getLogger().info(valueParserPool.getClass().getName());
             getLogger().info(parameterParserPool.getClass().getName());
             getLogger().info(cookieParserPool.getClass().getName());

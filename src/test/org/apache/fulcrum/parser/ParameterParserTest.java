@@ -1,5 +1,11 @@
 package org.apache.fulcrum.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,6 +30,7 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Iterator;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
 import org.apache.avalon.framework.component.ComponentException;
@@ -33,14 +40,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Basic test that ParameterParser instantiates.
  *
  * @author <a href="epugh@opensourceconnections.com">Eric Pugh</a>
  * @version $Id$
  */
+
 public class ParameterParserTest extends BaseUnit5Test
 {
     protected ParameterParser parameterParser = null;
@@ -138,6 +144,51 @@ public class ParameterParserTest extends BaseUnit5Test
     {
         parserService.putParser(parameterParser);
         this.release(parserService);
+    }
+    
+    @Test
+    public void testRequest() throws Exception
+    {
+        assertTrue(parameterParser.getRequest() == null);
+        HttpServletRequest req = getMockRequest();
+        parameterParser.setRequest(req);
+        assertTrue(parameterParser.getRequest().getServerPort() == 8080);
+        parserService.putParser(parameterParser);
+        assertTrue(parameterParser.getRequest() == null);
+        
+        parameterParser = parserService.getParser(DefaultParameterParser.class);
+        assertTrue(parameterParser.getRequest() == null);
+    }
+    
+
+    @Test
+    public void testRequests() throws Exception
+    {
+        
+        assertTrue(parameterParser.getRequest() == null);
+        HttpServletRequest req = getMockRequest();
+        
+        parameterParser.setRequest(req);
+        
+        parameterParser.add("xy", 35);
+        
+        assertTrue(parameterParser.getRequest().getServerPort() == 8080);
+        assertTrue(parameterParser.getString("xy").equals("35"));
+        
+        parserService.putParser(parameterParser);
+        assertTrue(parameterParser.getRequest() == null);
+        assertTrue(parameterParser.getString("xy") == null);
+
+        
+        ParameterParser parameterParser2 = parserService.getParser(DefaultParameterParser.class);
+        assertTrue(parameterParser2.getRequest() == null);
+        parameterParser2.add("ab", 7);
+        
+        // only one object in pool, which is refetched
+        assertTrue(parameterParser.getString("ab").equals("7"));
+        assertTrue(parameterParser.getString("xy") == null);
+        
+        assertTrue(parameterParser2.equals(parameterParser),parameterParser2 + " is not equal to "+ parameterParser);
     }
     
     /**

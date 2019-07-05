@@ -155,6 +155,8 @@ public class ParserServiceTest extends BaseUnit5Test
 
         when(request.getParts()).thenReturn(Arrays.asList(test, secondPart));
         
+        parameterParser.setRequest(request);
+        
         List<Part> parts = parserService.parseUpload( request );
         assertTrue( !parts.isEmpty() );
         assertTrue( parts.size() == 2 );

@@ -155,7 +155,7 @@ public class DefaultParameterParser
 
         handleEncoding( request );
 
-        String contentType = request.getHeader("Content-type");
+        String contentType = request.getContentType();
 
         if (parserService.getAutomaticUpload()
                 && contentType != null
@@ -243,7 +243,7 @@ public class DefaultParameterParser
         }
     }
 
-    private void handleEncoding( HttpServletRequest request )
+    protected void handleEncoding( HttpServletRequest request )
     {
         String enc = request.getCharacterEncoding();
         
@@ -251,8 +251,9 @@ public class DefaultParameterParser
         {
             try
             {  
-                // no-op if data was read (parameter, POST..) 
+                // no-op if data was read (parameter, POST..), see javadoc setCharacterEncoding
                 request.setCharacterEncoding( parserService.getParameterEncoding() );
+                // this is not (?) testable with mock
                 enc = request.getCharacterEncoding();
                 if (enc != null) 
                 {
