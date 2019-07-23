@@ -25,7 +25,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.fulcrum</groupId>
   <artifactId>fulcrum-parser</artifactId>
-  <version>2.0.1</version>
+  <version>2.0.2-SNAPSHOT</version>
   <name>Fulcrum Parser Service</name>
   <inceptionYear>2005</inceptionYear>
   <description>This Service functions as a repository for Parser components.</description>
@@ -39,9 +39,9 @@
     </site>
   </distributionManagement>
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-parser-2.0.1</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-parser-2.0.1</developerConnection>
-    <url>https://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-parser-2.0.1</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</developerConnection>
+    <url>https://svn.apache.org/viewvc/turbine/fulcrum/trunk/parser/</url>
   </scm>
 
   <developers>
