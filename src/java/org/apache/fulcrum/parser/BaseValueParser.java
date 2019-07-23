@@ -534,8 +534,15 @@ public class BaseValueParser
             result = new boolean[value.length];
             for (int i = 0; i < value.length; i++)
             {
-                Boolean bool = parseBoolean(value[i]);
-                result[i] = (bool == null ? false : bool.booleanValue());
+            	// default to false
+            	result[i] = false;
+            	
+            	// update with parsed value if exists
+            	Boolean bool = parseBoolean(value[i]);
+                if ( bool != null )
+                {
+                	result[i] = bool.booleanValue();
+                }            	
             }
         }
         return result;
