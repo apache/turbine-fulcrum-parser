@@ -99,7 +99,7 @@
           <td>*</td>
           <td>
             Wrapper for commons pool2 parameters (child components) <code>maxTotal</code>, 
-            <code>blockWhenExhausted</code>, <code>maxWaitMillis</code>, <code>maxIdle</code> and <code>minIdle</code>. The parameter values are the same as for commons.pool2, compare the defaults <a href="https://commons.apache.org/proper/commons-pool/apidocs/constant-values.html">here</a> for org.apache.commons.pool2.impl.BaseObjectPoolConfig and GenericKeyedObjectPoolConfig.
+            <code>blockWhenExhausted</code>, <code>maxWaitMillis</code>, <code>testOnBorrow</code>, <code>testOnCreate</code>, <code>testOnReturn</code>,<code>maxIdle</code> and <code>minIdle</code>. The parameter values are the same as for commons.pool2, compare the defaults (upper case and underscore-separated) <a href="https://commons.apache.org/proper/commons-pool/apidocs/constant-values.html">here</a> for org.apache.commons.pool2.impl.BaseObjectPoolConfig and GenericKeyedObjectPoolConfig.
           </td>
         </tr>
       </table>
@@ -147,6 +147,7 @@ finally
     }
 }
 ]]></source>
+
 
     <p>
     Parsers are pooled inside the service. You can use this service to manage any types of
