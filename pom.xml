@@ -41,7 +41,7 @@
   <scm>
     <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</connection>
     <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/parser/</developerConnection>
-    <url>http://svn.apache.org/viewvc/turbine/fulcrum/trunk/parser/</url>
+    <url>https://svn.apache.org/viewvc/turbine/fulcrum/trunk/parser/</url>
   </scm>
 
   <developers>
@@ -81,6 +81,15 @@
       <name>Jeffery Painter</name>
       <id>painter</id>
       <email>painter@apache.org</email>
+      <organization />
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <name>Georg Kallidis</name>
+      <id>gk</id>
+      <email>gk@apache.org</email>
       <organization />
       <roles>
         <role>Java Developer</role>
@@ -132,12 +141,6 @@
       <version>1.0.8</version>
       <scope>test</scope>
     </dependency>
-	<dependency>
-	    <groupId>org.mockito</groupId>
-	    <artifactId>mockito-core</artifactId>
-	    <version>2.23.0</version>
-	    <scope>test</scope>
-	</dependency>
   </dependencies>
 
   <build>
@@ -145,11 +148,9 @@
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
   </build>
 
-  <properties>
+   <properties>
     <turbine.site.path>fulcrum/fulcrum-parser</turbine.site.path>
     <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/parser</turbine.scmPubCheckoutDirectory>
-    <turbine.site.cache>${project.build.directory}/turbine-sites</turbine.site.cache>
-    <siteContent.path>${project.build.directory}/staging</siteContent.path><!-- default stagingSiteURL -->
   </properties>  
 	
 </project>
