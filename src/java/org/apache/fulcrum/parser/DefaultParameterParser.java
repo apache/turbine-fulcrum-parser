@@ -295,7 +295,8 @@ public class DefaultParameterParser
     @Override
     public byte[] getUploadData ()
     {
-        return this.uploadData;
+    	// return a clone safety re: EI_EXPOSE_REP
+        return this.uploadData.clone();
     }
 
     /**
