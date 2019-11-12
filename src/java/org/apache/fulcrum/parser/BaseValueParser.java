@@ -185,6 +185,7 @@ public class BaseValueParser
     /**
      * Disposes the parser.
      */
+    @Override
     public void dispose()
     {
         clear();

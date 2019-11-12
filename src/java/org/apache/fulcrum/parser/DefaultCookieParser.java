@@ -78,6 +78,7 @@ public class DefaultCookieParser
     public void dispose()
     {
         this.request = null;
+        this.response = null;
         super.dispose();
     }
 
