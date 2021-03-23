@@ -98,8 +98,13 @@
           <td>list</td>
           <td>*</td>
           <td>
-            Wrapper for commons pool2 parameters (child components) <code>maxTotal</code>, 
-            <code>blockWhenExhausted</code>, <code>maxWaitMillis</code>, <code>testOnBorrow</code>, <code>testOnCreate</code>, <code>testOnReturn</code>,<code>maxIdle</code> and <code>minIdle</code>. The parameter values are the same as for commons.pool2, compare the defaults (upper case and underscore-separated) <a href="https://commons.apache.org/proper/commons-pool/apidocs/constant-values.html">here</a> for org.apache.commons.pool2.impl.BaseObjectPoolConfig and GenericKeyedObjectPoolConfig.
+            Wrapper for commons pool2 parameters (child components) <code>maxTotal</code>with value -1 =no limit, other plausible values 1024, 2048. 
+            <code>blockWhenExhausted</code> (by default <code>true</code>), <code>maxWaitMillis</code> by default <code>0</code>, <code>testOnBorrow</code>, <code>testOnCreate</code>, <code>testOnReturn</code>,<code>maxIdle</code> and <code>minIdle</code>. 
+            The parameter values are the same as for commons.pool2, 
+            compare the defaults (upper case and underscore-separated) 
+            <a href="
+            https://commons.apache.org/proper/commons-pool/apidocs/index.html">here </a> 
+            look for org.apache.commons.pool2.impl.BaseObjectPoolConfig and BaseGenericObjectPool.
           </td>
         </tr>
       </table>
@@ -112,8 +117,8 @@
     <parameterEncoding>utf-8</parameterEncoding>
     <automaticUpload>true</automaticUpload>
     <pool2>
-         <maxTotal>2048</maxTotal><!--  default 8 -->
-         <blockWhenExhausted>true</blockWhenExhausted><!--  default is true -->
+         <maxTotal>2048</maxTotal><!-- default 8 -->
+         <blockWhenExhausted>true</blockWhenExhausted><!-- default is true -->
          <maxWaitMillis>350</maxWaitMillis><!--  default is -1L -->
     </pool2>
 </parser>
