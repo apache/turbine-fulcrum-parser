@@ -19,8 +19,8 @@
 -->
 <componentConfig>
     <parser>
-		<parameterEncoding>utf-8</parameterEncoding>
-		<automaticUpload>true</automaticUpload>
-		<fulcrumPool>true</fulcrumPool>
+        <parameterEncoding>utf-8</parameterEncoding>
+        <automaticUpload>true</automaticUpload>
+        <fulcrumPool>true</fulcrumPool>
     </parser>
 </componentConfig>

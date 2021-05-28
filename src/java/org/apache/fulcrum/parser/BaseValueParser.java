@@ -81,10 +81,10 @@ public class BaseValueParser
     private Logger logger;
 
     /** String values which would evaluate to Boolean.TRUE */
-    private static final String[] trueValues = {"TRUE","T","YES","Y","1","ON"};
+    private static final String[] TRUE_VALUES = {"TRUE","T","YES","Y","1","ON"};
 
     /** String values which would evaluate to Boolean.FALSE */
-    private static final String[] falseValues = {"FALSE","F","NO","N","0","OFF"};
+    private static final String[] FALSE_VALUES = {"FALSE","F","NO","N","0","OFF"};
 
     /**
      * The character encoding to use when converting to byte arrays
@@ -167,7 +167,7 @@ public class BaseValueParser
     /**
      * Recycles the parser.
      */
-    public void recycle()
+    public final void recycle()
     {
         recycle(DEFAULT_CHARACTER_ENCODING);
     }
@@ -177,7 +177,7 @@ public class BaseValueParser
      *
      * @param characterEncoding the character encoding.
      */
-    public void recycle(String characterEncoding)
+    public final void recycle(String characterEncoding)
     {
         setCharacterEncoding(characterEncoding);
     }
@@ -205,7 +205,7 @@ public class BaseValueParser
      * Set the character encoding that will be used by this ValueParser.
      */
     @Override
-    public void setCharacterEncoding(String s)
+    public final void setCharacterEncoding(String s)
     {
         characterEncoding = s;
     }
@@ -223,7 +223,7 @@ public class BaseValueParser
      * Set the locale that will be used by this ValueParser.
      */
     @Override
-    public void setLocale(Locale l)
+    public final void setLocale(Locale l)
     {
         locale = l;
         setDateFormat(DateFormat.getDateInstance(DateFormat.SHORT, locale));
@@ -234,7 +234,7 @@ public class BaseValueParser
      * Get the locale that will be used by this ValueParser.
      */
     @Override
-    public Locale getLocale()
+    public final Locale getLocale()
     {
         return locale;
     }
@@ -243,7 +243,7 @@ public class BaseValueParser
      * Set the date format that will be used by this ValueParser.
      */
     @Override
-    public void setDateFormat(DateFormat df)
+    public final void setDateFormat(DateFormat df)
     {
         dateFormat = df;
     }
@@ -462,18 +462,18 @@ public class BaseValueParser
         if (StringUtils.isNotEmpty(value))
         {
             for (int cnt = 0;
-            cnt < Math.max(trueValues.length, falseValues.length); cnt++)
+            cnt < Math.max(TRUE_VALUES.length, FALSE_VALUES.length); cnt++)
             {
                 // Short-cut evaluation or bust!
-                if (cnt < trueValues.length &&
-                   value.equalsIgnoreCase(trueValues[cnt]))
+                if (cnt < TRUE_VALUES.length &&
+                   value.equalsIgnoreCase(TRUE_VALUES[cnt]))
                 {
                     result = Boolean.TRUE;
                     break;
                 }
 
-                if (cnt < falseValues.length &&
-                   value.equalsIgnoreCase(falseValues[cnt]))
+                if (cnt < FALSE_VALUES.length &&
+                   value.equalsIgnoreCase(FALSE_VALUES[cnt]))
                 {
                     result = Boolean.FALSE;
                     break;
@@ -1406,7 +1406,7 @@ public class BaseValueParser
      * the bean property and the parameter is looked for.
      *
      * @param bean An Object.
-     * @exception Exception a generic exception.
+     * @throws Exception a generic exception.
      */
     @Override
     public void setProperties(Object bean) throws Exception
@@ -1486,7 +1486,7 @@ public class BaseValueParser
      *
      * @param bean An Object.
      * @param prop A PropertyDescriptor.
-     * @exception Exception a generic exception.
+     * @@throws Exception a generic exception.
      */
     protected void setProperty(Object bean,
                                PropertyDescriptor prop)

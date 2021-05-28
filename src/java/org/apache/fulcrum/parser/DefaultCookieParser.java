@@ -140,7 +140,7 @@ public class DefaultCookieParser
      * Set a persistent cookie on the client that will expire
      * after a maximum age (given in seconds).
      */
-    public void set(String name, String value, int seconds_age)
+    public void set(String name, String value, int secondsAge)
     {
         if (response == null)
         {
@@ -148,7 +148,7 @@ public class DefaultCookieParser
         }
 
         Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(seconds_age);
+        cookie.setMaxAge(secondsAge);
         cookie.setPath(request.getServletPath());
         response.addCookie(cookie);
     }

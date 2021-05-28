@@ -20,6 +20,7 @@
     <groupId>org.apache.turbine</groupId>
     <artifactId>turbine-parent</artifactId>
     <version>8</version>
+    <relativePath></relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -115,18 +116,17 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.9</version>
     </dependency>
-	<dependency>
-	    <groupId>org.apache.commons</groupId>
-	    <artifactId>commons-pool2</artifactId>
-	    <version>2.7.0</version>
-	</dependency>
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-pool2</artifactId>
+        <version>2.7.0</version>
+    </dependency>
+    <!--  fulcrum-pool is required even if not used due to optional fall-back -->
    <dependency>
       <groupId>org.apache.fulcrum</groupId>
       <artifactId>fulcrum-pool</artifactId>
       <version>1.0.5</version>
-      <optional>true</optional>
    </dependency>
-
     <!-- testing dependencies -->
     <dependency>
       <groupId>org.apache.fulcrum</groupId>
