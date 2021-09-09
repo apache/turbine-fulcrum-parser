@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultParameterParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum Parser Service</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.parser</a> &gt; <span class="el_source">DefaultParameterParser.java</span></div><h1>DefaultParameterParser.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.parser;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+
+import org.apache.avalon.framework.service.ServiceException;
+import org.apache.commons.lang3.ArrayUtils;
+
+/**
+ * DefaultParameterParser is a utility object to handle parsing and
+ * retrieving the data passed via the GET/POST/PATH_INFO arguments.
+ *
+ * &lt;p&gt;NOTE: The name= portion of a name=value pair may be converted
+ * to lowercase or uppercase when the object is initialized and when
+ * new data is added.  This behaviour is determined by the url.case.folding
+ * property in TurbineResources.properties.  Adding a name/value pair may
+ * overwrite existing name=value pairs if the names match:
+ *
+ * &lt;pre&gt;
+ * ParameterParser pp = data.getParameters();
+ * pp.add(&quot;ERROR&quot;,1);
+ * pp.add(&quot;eRrOr&quot;,2);
+ * int result = pp.getInt(&quot;ERROR&quot;);
+ * &lt;/pre&gt;
+ *
+ * In the above example, result is 2.
+ *
+ * @author &lt;a href=&quot;mailto:ilkka.priha@simsoft.fi&quot;&gt;Ilkka Priha&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:jon@clearink.com&quot;&gt;Jon S. Stevens&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:sean@informage.net&quot;&gt;Sean Legassick&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:jh@byteaction.de&quot;&gt;J&amp;#252;rgen Hoffmann&lt;/a&gt;
+ * @version $Id$
+ */
+public class DefaultParameterParser
+    extends BaseValueParser
+    implements ParameterParser
+{
+    /**
+     * The servlet request to parse.
+     */
+<span class="pc" id="L71">    private HttpServletRequest request = null;</span>
+
+    /**
+     * The raw data of a file upload.
+     */
+<span class="pc" id="L76">    private byte[] uploadData = null;</span>
+
+    /**
+     * Create a new empty instance of ParameterParser.  Uses the
+     * default character encoding (US-ASCII).
+     *
+     * &lt;p&gt;To add name/value pairs to this set of parameters, use the
+     * &lt;code&gt;add()&lt;/code&gt; methods.
+     *
+     */
+    public DefaultParameterParser()
+    {
+<span class="fc" id="L88">        super();</span>
+<span class="fc" id="L89">    }</span>
+
+    /**
+     * Create a new empty instance of ParameterParser. Takes a
+     * character encoding name to use when converting strings to
+     * bytes.
+     *
+     * &lt;p&gt;To add name/value pairs to this set of parameters, use the
+     * &lt;code&gt;add()&lt;/code&gt; methods.
+     *
+     * @param characterEncoding The character encoding of strings.
+     */
+    public DefaultParameterParser(String characterEncoding)
+    {
+<span class="nc" id="L103">        super (characterEncoding);</span>
+<span class="nc" id="L104">    }</span>
+
+    /**
+     * Disposes the parser.
+     */
+    @Override
+    public void dispose()
+    {
+<span class="fc" id="L112">        this.request = null;</span>
+<span class="fc" id="L113">        this.uploadData = null;</span>
+<span class="fc" id="L114">        super.dispose();</span>
+<span class="fc" id="L115">    }</span>
+
+    /**
+     * Gets the parsed servlet request.
+     *
+     * @return the parsed servlet request or null.
+     */
+    @Override
+    public HttpServletRequest getRequest()
+    {
+<span class="fc" id="L125">        return request;</span>
+    }
+
+    /**
+     * Sets the servlet request to the parser.  This requires a
+     * valid HttpServletRequest object.  It will attempt to parse out
+     * the GET/POST/PATH_INFO data and store the data into a Map.
+     * There are convenience methods for retrieving the data as a
+     * number of different datatypes.  The PATH_INFO data must be a
+     * URLEncoded() string.
+     * &lt;p&gt;
+     * Sets the request character encoding to the parser. 
+     * &lt;p&gt;
+     * Sets the request encoding, if it is not set and {@link ParserService#getParameterEncoding()} 
+     * is set to a non-default value {@link ParserService#PARAMETER_ENCODING_DEFAULT} 
+     * (if {@link HttpServletRequest#getCharacterEncoding()} returns null, 
+     * it has the default set to ISO-8859-1, cft. Servlet 2.4, 2.5, 3.0, 3.1 Specs).
+     * This will only succeed, if no data was read yet, cft. spec.
+     * &lt;p&gt;
+     * To add name/value pairs to this set of parameters, use the
+     * &lt;code&gt;add()&lt;/code&gt; methods.
+     *
+     * @param request An HttpServletRequest.
+     */
+    @Override
+    public void setRequest(HttpServletRequest request)
+    {
+<span class="fc" id="L152">        clear();</span>
+
+<span class="fc" id="L154">        uploadData = null;</span>
+
+<span class="fc" id="L156">        handleEncoding( request );</span>
+
+<span class="fc" id="L158">        String contentType = request.getContentType();</span>
+
+<span class="pc bpc" id="L160" title="2 of 4 branches missed.">        if (parserService.getAutomaticUpload()</span>
+                &amp;&amp; contentType != null
+<span class="fc bfc" id="L162" title="All 2 branches covered.">                &amp;&amp; contentType.startsWith(&quot;multipart/form-data&quot;))</span>
+        {
+            try
+            {
+<span class="fc" id="L166">                List&lt;Part&gt; parts = parserService.parseUpload(request);</span>
+
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">                if (parts != null)</span>
+                {
+<span class="fc bfc" id="L170" title="All 2 branches covered.">                    for (Part p : parts)</span>
+                    {
+<span class="fc" id="L172">                        getLogger().debug(&quot;Found an uploaded file: &quot; + p.getName());</span>
+<span class="fc" id="L173">                        getLogger().debug(&quot;It has &quot; + p.getSize() + &quot; Bytes&quot;);</span>
+<span class="fc" id="L174">                        getLogger().debug(&quot;Adding Part as &quot; + p.getName() + &quot; to the params&quot;);</span>
+<span class="fc" id="L175">                        add(p.getName(), p);</span>
+<span class="fc" id="L176">                    }</span>
+                }
+            }
+<span class="nc" id="L179">            catch (ServiceException e)</span>
+            {
+<span class="nc" id="L181">                getLogger().error(&quot;File upload failed&quot;, e);</span>
+<span class="fc" id="L182">            }</span>
+        }
+
+<span class="fc" id="L185">        for (Enumeration&lt;?&gt; names = request.getParameterNames();</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">             names.hasMoreElements();)</span>
+        {
+<span class="nc" id="L188">            String paramName = (String) names.nextElement();</span>
+<span class="nc" id="L189">            add(paramName,</span>
+<span class="nc" id="L190">                    request.getParameterValues(paramName));</span>
+<span class="nc" id="L191">        }</span>
+
+<span class="fc" id="L193">        handlePathInfo( request );</span>
+
+<span class="fc" id="L195">        this.request = request;</span>
+
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">        if (getLogger().isDebugEnabled())</span>
+        {
+<span class="nc" id="L199">            getLogger().debug(&quot;Parameters found in the Request:&quot;);</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            for (String key : keySet())</span>
+            {
+<span class="nc" id="L202">                getLogger().debug(&quot;Key: &quot; + key + &quot; -&gt; &quot; + getString(key));</span>
+<span class="nc" id="L203">            }</span>
+        }
+<span class="fc" id="L205">    }</span>
+
+    private void handlePathInfo( HttpServletRequest request )
+    {
+        // Also cache any pathinfo variables that are passed around as
+        // if they are query string data.
+        try
+        {
+<span class="fc" id="L213">            boolean isNameTok = true;</span>
+<span class="fc" id="L214">            String paramName = null;</span>
+<span class="fc" id="L215">            String paramValue = null;</span>
+
+<span class="fc" id="L217">            for ( StringTokenizer st =</span>
+<span class="fc" id="L218">                          new StringTokenizer(request.getPathInfo(), &quot;/&quot;);</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">                  st.hasMoreTokens();)</span>
+            {
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">                if (isNameTok)</span>
+                {
+<span class="fc" id="L223">                    paramName = URLDecoder.decode(st.nextToken(), getCharacterEncoding());</span>
+<span class="fc" id="L224">                    isNameTok = false;</span>
+                }
+                else
+                {
+<span class="nc" id="L228">                    paramValue = URLDecoder.decode(st.nextToken(), getCharacterEncoding());</span>
+<span class="nc bnc" id="L229" title="All 4 branches missed.">                    if (paramName != null &amp;&amp; paramName.length() &gt; 0)</span>
+                    {
+<span class="nc" id="L231">                        add(paramName, paramValue);</span>
+                    }
+<span class="nc" id="L233">                    isNameTok = true;</span>
+                }
+            }
+        }
+<span class="nc" id="L237">        catch (Exception e)</span>
+        {
+            // If anything goes wrong above, don't worry about it.
+            // Chances are that the path info was wrong anyways and
+            // things that depend on it being right will fail later
+            // and should be caught later.
+<span class="fc" id="L243">        }</span>
+<span class="fc" id="L244">    }</span>
+
+    protected void handleEncoding( HttpServletRequest request )
+    {
+<span class="fc" id="L248">        String enc = request.getCharacterEncoding();</span>
+        
+<span class="pc bpc" id="L250" title="3 of 4 branches missed.">        if (enc == null &amp;&amp; !parserService.getParameterEncoding().equals(ParserService.PARAMETER_ENCODING_DEFAULT )) </span>
+        {
+            try
+            {  
+                // no-op if data was read (parameter, POST..), see javadoc setCharacterEncoding
+<span class="nc" id="L255">                request.setCharacterEncoding( parserService.getParameterEncoding() );</span>
+                // this is not (?) testable with mock
+<span class="nc" id="L257">                enc = request.getCharacterEncoding();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                if (enc != null) </span>
+                {
+<span class="nc" id="L260">                    getLogger().debug(&quot;Set the request encoding successfully to parameterEncoding of parser: &quot;+enc );</span>
+                } 
+                else 
+                {
+<span class="nc" id="L264">                    getLogger().warn(&quot;Unsuccessfully (data read happened) tried to set the request encoding to &quot;+ parserService.getParameterEncoding()  );</span>
+                }
+            }
+<span class="nc" id="L267">            catch ( UnsupportedEncodingException e )</span>
+            {
+<span class="nc" id="L269">                getLogger().error(&quot;Found only unsupported encoding &quot;+ e.getMessage());</span>
+<span class="nc" id="L270">            }</span>
+        }
+        
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">        setCharacterEncoding(enc != null</span>
+<span class="fc" id="L274">                ? enc</span>
+<span class="nc" id="L275">                : parserService.getParameterEncoding());</span>
+<span class="fc" id="L276">    }</span>
+
+    /**
+     * Sets the uploadData byte[]
+     *
+     * @param uploadData A byte[] with data.
+     */
+    @Override
+    public void setUploadData ( byte[] uploadData )
+    {
+    	// copy contents into our own representation for safety re: EI_EXPOSE_REP
+<span class="nc" id="L287">        this.uploadData = Arrays.copyOf(uploadData, uploadData.length);</span>
+<span class="nc" id="L288">    }</span>
+
+    /**
+     * Gets the uploadData byte[]
+     *
+     * @return uploadData A byte[] with data.
+     */
+    @Override
+    public byte[] getUploadData ()
+    {
+    	// return a clone safety re: EI_EXPOSE_REP
+<span class="nc" id="L299">        return this.uploadData.clone();</span>
+    }
+
+    /**
+     * Add a Part object as a parameters.  If there are any
+     * Parts already associated with the name, append to the
+     * array.  The reason for this is that RFC 1867 allows multiple
+     * files to be associated with single HTML input element.
+     *
+     * @param name A String with the name.
+     * @param value A Part with the value.
+     */
+    @Override
+    public void add( String name, Part value )
+    {
+<span class="fc" id="L314">        Part[] items = this.getParts(name);</span>
+<span class="fc" id="L315">        items = ArrayUtils.add(items, value);</span>
+<span class="fc" id="L316">        parameters.put(convert(name), items);</span>
+<span class="fc" id="L317">    }</span>
+
+    /**
+     * @see org.apache.fulcrum.parser.ParameterParser#getPart(java.lang.String)
+     * 
+     * Return a Part object for the given name.  If the name does
+     * not exist or the object stored is not a Part, return null.
+     *
+     * @param name A String with the name.
+     * @return A Part.
+     */
+    @Override
+    public Part getPart(String name)
+    {
+        try
+        {
+<span class="fc" id="L333">            Part value = null;</span>
+<span class="fc" id="L334">            Object object = parameters.get(convert(name));</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">            if (object != null)</span>
+            {
+<span class="fc" id="L337">                value = ((Part[])object)[0];</span>
+            }
+<span class="fc" id="L339">            return value;</span>
+        }
+<span class="fc" id="L341">        catch ( ClassCastException e )</span>
+        {
+<span class="fc" id="L343">            return null;</span>
+        }
+    }
+
+    /**
+     * @see org.apache.fulcrum.parser.ParameterParser#getParts(java.lang.String)
+     * 
+     * Return an array of Part objects for the given name.  If the
+     * name does not exist or the object stored is not a Part
+     * array, return null.
+     *
+     * @param name A String with the name.
+     * @return A Part[] 
+     */
+    @Override
+    public Part[] getParts(String name)
+    {
+        try
+        {
+<span class="fc" id="L362">            return (Part[])parameters.get(convert(name));</span>
+        }
+<span class="nc" id="L364">        catch ( ClassCastException e )</span>
+        {
+<span class="nc" id="L366">            return new Part[0];// empty array</span>
+        }
+    }
+    
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.ParameterParser#getParts()
+     */
+    @Override
+    public Collection&lt;Part&gt; getParts()
+    {
+<span class="nc" id="L376">        return parameters.values().stream().</span>
+<span class="nc" id="L377">                            filter( p-&gt; p instanceof Part[]).</span>
+<span class="nc" id="L378">                            flatMap(c -&gt; Arrays.stream( (Part[]) c )).</span>
+<span class="nc" id="L379">                            collect( Collectors.toList() );</span>
+
+    }
+
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.ParameterParser#getFileName(javax.servlet.http.Part)
+     */
+    @Override
+    public String getFileName(Part part)
+    {
+<span class="fc" id="L389">        final String partHeader = part.getHeader(&quot;content-disposition&quot;);</span>
+        
+        // rfc2183, rfc5987 quoted string, but attachments may have not?
+<span class="fc" id="L392">        Pattern regex = Pattern.compile(&quot;filename\\*?=\&quot;?(.[^\&quot;]+)\&quot;?&quot;);</span>
+        
+<span class="pc bpc" id="L394" title="1 of 2 branches missed.">        for (String content : partHeader.split(&quot;;&quot;)) </span>
+        {
+        	// could also filename*=&lt;encoding&gt;''&lt;value&gt;
+<span class="fc bfc" id="L397" title="All 2 branches covered.">            if (content.trim().contains( &quot;filename&quot; )) </span>
+            { 
+<span class="fc" id="L399">                String fnTmp = &quot;&quot;;</span>
+<span class="fc" id="L400">                String srcStr = content.trim();</span>
+<span class="fc" id="L401">                Matcher regexMatcher = regex.matcher(srcStr);</span>
+<span class="pc bpc" id="L402" title="1 of 2 branches missed.">                if (regexMatcher.find()) </span>
+                {
+<span class="fc" id="L404">                    fnTmp = regexMatcher.group(1);</span>
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">                    if (getLogger().isDebugEnabled()) </span>
+                    {
+<span class="nc" id="L407">                        getLogger().debug( &quot;matched fileName:&quot; + fnTmp );</span>
+                    }
+                } else { 
+                	// last resort
+<span class="nc" id="L411">                    fnTmp  = srcStr.substring(srcStr.indexOf('=')+1).replace( &quot;\&quot;&quot;, &quot;&quot; );</span>
+<span class="nc" id="L412">                    getLogger().debug( &quot;second fileName match:&quot; + fnTmp );</span>
+                }
+<span class="fc" id="L414">                return fnTmp.trim();</span>
+            }
+        }
+<span class="nc" id="L417">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

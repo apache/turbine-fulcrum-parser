@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataStreamParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum Parser Service</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.parser</a> &gt; <span class="el_source">DataStreamParser.java</span></div><h1>DataStreamParser.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.parser;
+
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.apache.avalon.framework.logger.LogEnabled;
+import org.apache.avalon.framework.logger.Logger;
+
+/**
+ * DataStreamParser is used to parse a stream with a fixed format and
+ * generate ValueParser objects which can be used to extract the values
+ * in the desired type.
+ *
+ * &lt;p&gt;The class itself is abstract - a concrete subclass which implements
+ * the initTokenizer method such as CSVParser or TSVParser is required
+ * to use the functionality.
+ *
+ * &lt;p&gt;The class implements the java.util.Iterator interface for convenience.
+ * This allows simple use in a Velocity template for example:
+ *
+ * &lt;pre&gt;
+ * #foreach ($row in $datastream)
+ *   Name: $row.Name
+ *   Description: $row.Description
+ * #end
+ * &lt;/pre&gt;
+ *
+ * @author &lt;a href=&quot;mailto:sean@informage.net&quot;&gt;Sean Legassick&lt;/a&gt;
+ * @version $Id$
+ */
+public abstract class DataStreamParser
+    implements Iterator&lt;ValueParser&gt;, LogEnabled
+{
+    /**
+     * The list of column names.
+     */
+    private List&lt;String&gt;    columnNames;
+
+    /**
+     * The stream tokenizer for reading values from the input reader.
+     */
+    private final StreamTokenizer tokenizer;
+
+    /**
+     * The parameter parser holding the values of columns for the current line.
+     */
+    private ValueParser     lineValues;
+
+    /**
+     * Indicates whether or not the tokenizer has read anything yet.
+     */
+<span class="nc" id="L80">    private boolean         neverRead = true;</span>
+
+    /**
+     * The character encoding of the input
+     */
+    private String          characterEncoding;
+
+    /**
+     * Logger to use
+     */
+    protected Logger log;
+
+    /**
+     * Create a new DataStreamParser instance. Requires a Reader to read the
+     * comma-separated values from, a list of column names and a
+     * character encoding.
+     *
+     * @param in the input reader.
+     * @param columnNames a list of column names.
+     * @param characterEncoding the character encoding of the input.
+     */
+    public DataStreamParser(Reader in, List&lt;String&gt; columnNames,
+            String characterEncoding)
+<span class="nc" id="L103">    {</span>
+<span class="nc" id="L104">        this.columnNames = columnNames;</span>
+<span class="nc" id="L105">        this.characterEncoding = characterEncoding;</span>
+
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (this.characterEncoding == null)</span>
+        {
+            // try and get the characterEncoding from the reader
+<span class="nc" id="L110">            this.characterEncoding = &quot;US-ASCII&quot;;</span>
+            try
+            {
+<span class="nc" id="L113">                this.characterEncoding = ((InputStreamReader)in).getEncoding();</span>
+            }
+<span class="nc" id="L115">            catch (ClassCastException e)</span>
+            {
+                // ignore
+<span class="nc" id="L118">            }</span>
+        }
+
+<span class="nc" id="L121">        tokenizer = new StreamTokenizer(new BufferedReader(in));</span>
+<span class="nc" id="L122">        initTokenizer(tokenizer);</span>
+<span class="nc" id="L123">    }</span>
+
+    /**
+     * Initialize the StreamTokenizer instance used to read the lines
+     * from the input reader. This must be implemented in subclasses to
+     * set up the tokenizing properties.
+     * 
+     * @param tokenizer the StreamTokenizer to use
+     */
+    protected abstract void initTokenizer(StreamTokenizer tokenizer);
+
+    /**
+     * Provide a logger
+     *
+     * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
+     */
+    public void enableLogging(Logger logger)
+    {
+<span class="nc" id="L141">        this.log = logger.getChildLogger(&quot;DataStreamParser&quot;);</span>
+<span class="nc" id="L142">    }</span>
+
+    /**
+     * Set the list of column names explicitly.
+     *
+     * @param columnNames A list of column names.
+     */
+    public void setColumnNames(List&lt;String&gt; columnNames)
+    {
+<span class="nc" id="L151">        this.columnNames = columnNames;</span>
+<span class="nc" id="L152">    }</span>
+
+    /**
+     * Read the list of column names from the input reader using the
+     * tokenizer.
+     *
+     * @exception IOException an IOException occurred.
+     */
+    public void readColumnNames()
+        throws IOException
+    {
+<span class="nc" id="L163">        columnNames = new ArrayList&lt;String&gt;();</span>
+
+<span class="nc" id="L165">        neverRead = false;</span>
+<span class="nc" id="L166">        tokenizer.nextToken();</span>
+<span class="nc bnc" id="L167" title="All 4 branches missed.">        while (tokenizer.ttype == StreamTokenizer.TT_WORD</span>
+               || tokenizer.ttype == '&quot;')
+        {
+<span class="nc" id="L170">            columnNames.add(tokenizer.sval);</span>
+<span class="nc" id="L171">            tokenizer.nextToken();</span>
+        }
+<span class="nc" id="L173">    }</span>
+
+    /**
+     * Determine whether a further row of values exists in the input.
+     *
+     * @return true if the input has more rows.
+     * @exception IOException an IOException occurred.
+     */
+    public boolean hasNextRow()
+        throws IOException
+    {
+        // check for end of line ensures that an empty last line doesn't
+        // give a false positive for hasNextRow
+<span class="nc bnc" id="L186" title="All 4 branches missed.">        if (neverRead || tokenizer.ttype == StreamTokenizer.TT_EOL)</span>
+        {
+<span class="nc" id="L188">            tokenizer.nextToken();</span>
+<span class="nc" id="L189">            tokenizer.pushBack();</span>
+<span class="nc" id="L190">            neverRead = false;</span>
+        }
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        return tokenizer.ttype != StreamTokenizer.TT_EOF;</span>
+    }
+
+    /**
+     * Returns a ValueParser object containing the next row of values.
+     *
+     * @return a ValueParser object.
+     * @exception IOException an IOException occurred.
+     * @exception NoSuchElementException there are no more rows in the input.
+     */
+    public ValueParser nextRow()
+        throws IOException, NoSuchElementException
+    {
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (!hasNextRow())</span>
+        {
+<span class="nc" id="L207">            throw new NoSuchElementException();</span>
+        }
+
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (lineValues == null)</span>
+        {
+<span class="nc" id="L212">            lineValues = new BaseValueParser(characterEncoding);</span>
+        }
+        else
+        {
+<span class="nc" id="L216">            lineValues.clear();</span>
+        }
+
+<span class="nc" id="L219">        Iterator&lt;String&gt; it = columnNames.iterator();</span>
+<span class="nc" id="L220">        tokenizer.nextToken();</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">        while (tokenizer.ttype == StreamTokenizer.TT_WORD</span>
+               || tokenizer.ttype == '&quot;')
+        {
+            // note this means that if there are more values than
+            // column names, the extra values are discarded.
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            if (it.hasNext())</span>
+            {
+<span class="nc" id="L228">                String colname = it.next().toString();</span>
+<span class="nc" id="L229">                String colval  = tokenizer.sval;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                if (log.isDebugEnabled())</span>
+                {
+<span class="nc" id="L232">                    log.debug(&quot;DataStreamParser.nextRow(): &quot; +</span>
+                              colname + '=' + colval);
+                }
+<span class="nc" id="L235">                lineValues.add(colname, colval);</span>
+            }
+<span class="nc" id="L237">            tokenizer.nextToken();</span>
+        }
+
+<span class="nc" id="L240">        return lineValues;</span>
+    }
+
+    /**
+     * Determine whether a further row of values exists in the input.
+     *
+     * @return true if the input has more rows.
+     */
+    public boolean hasNext()
+    {
+<span class="nc" id="L250">        boolean hasNext = false;</span>
+
+        try
+        {
+<span class="nc" id="L254">            hasNext = hasNextRow();</span>
+        }
+<span class="nc" id="L256">        catch (IOException e)</span>
+        {
+<span class="nc" id="L258">            log.error(&quot;IOException in CSVParser.hasNext&quot;, e);</span>
+<span class="nc" id="L259">        }</span>
+
+<span class="nc" id="L261">        return hasNext;</span>
+    }
+
+    /**
+     * Returns a ValueParser object containing the next row of values.
+     *
+     * @return a ValueParser object as an Object.
+     * @exception NoSuchElementException there are no more rows in the input
+     *                                   or an IOException occurred.
+     */
+    public ValueParser next()
+        throws NoSuchElementException
+    {
+<span class="nc" id="L274">        ValueParser nextRow = null;</span>
+
+        try
+        {
+<span class="nc" id="L278">            nextRow = nextRow();</span>
+        }
+<span class="nc" id="L280">        catch (IOException e)</span>
+        {
+<span class="nc" id="L282">            log.error(&quot;IOException in CSVParser.next&quot;, e);</span>
+<span class="nc" id="L283">            throw new NoSuchElementException();</span>
+<span class="nc" id="L284">        }</span>
+
+<span class="nc" id="L286">        return nextRow;</span>
+    }
+
+    /**
+     * The optional Iterator.remove method is not supported.
+     *
+     * @exception UnsupportedOperationException the operation is not supported.
+     */
+    public void remove()
+        throws UnsupportedOperationException
+    {
+<span class="nc" id="L297">        throw new UnsupportedOperationException();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,1700 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseValueParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum Parser Service</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.parser</a> &gt; <span class="el_source">BaseValueParser.java</span></div><h1>BaseValueParser.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.parser;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.beans.IndexedPropertyDescriptor;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Set;
+
+import org.apache.avalon.framework.logger.LogEnabled;
+import org.apache.avalon.framework.logger.Logger;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * BaseValueParser is a base class for classes that need to parse
+ * name/value Parameters, for example GET/POST data or Cookies
+ * (DefaultParameterParser and DefaultCookieParser)
+ *
+ * &lt;p&gt;It can also be used standalone, for an example see DataStreamParser.
+ *
+ * &lt;p&gt;NOTE: The name= portion of a name=value pair may be converted
+ * to lowercase or uppercase when the object is initialized and when
+ * new data is added.  This behavior is determined by the url.case.folding
+ * property in TurbineResources.properties.  Adding a name/value pair may
+ * overwrite existing name=value pairs if the names match:
+ *
+ * &lt;pre&gt;
+ * ValueParser vp = new BaseValueParser();
+ * vp.add(&quot;ERROR&quot;,1);
+ * vp.add(&quot;eRrOr&quot;,2);
+ * int result = vp.getInt(&quot;ERROR&quot;);
+ * &lt;/pre&gt;
+ *
+ * In the above example, result is 2.
+ *
+ * @author &lt;a href=&quot;mailto:ilkka.priha@simsoft.fi&quot;&gt;Ilkka Priha&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:jon@clearink.com&quot;&gt;Jon S. Stevens&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:sean@informage.net&quot;&gt;Sean Legassick&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:jvanzyl@periapt.com&quot;&gt;Jason van Zyl&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:jh@byteaction.de&quot;&gt;J&amp;#252;rgen Hoffmann&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:tv@apache.org&quot;&gt;Thomas Vandahl&lt;/a&gt;
+ * @version $Id$
+ */
+public class BaseValueParser
+    implements ValueParser,
+               ParserServiceSupport, LogEnabled
+{
+    /** The ParserService instance to query for conversion and configuration */
+    protected ParserService parserService;
+
+    /** A convenience logger */
+    private Logger logger;
+
+    /** String values which would evaluate to Boolean.TRUE */
+<span class="fc" id="L84">    private static final String[] TRUE_VALUES = {&quot;TRUE&quot;,&quot;T&quot;,&quot;YES&quot;,&quot;Y&quot;,&quot;1&quot;,&quot;ON&quot;};</span>
+
+    /** String values which would evaluate to Boolean.FALSE */
+<span class="fc" id="L87">    private static final String[] FALSE_VALUES = {&quot;FALSE&quot;,&quot;F&quot;,&quot;NO&quot;,&quot;N&quot;,&quot;0&quot;,&quot;OFF&quot;};</span>
+
+    /**
+     * The character encoding to use when converting to byte arrays
+     */
+<span class="fc" id="L92">    private String characterEncoding = DEFAULT_CHARACTER_ENCODING;</span>
+
+    /**
+     * Random access storage for parameter data.
+     */
+<span class="fc" id="L97">    protected Hashtable&lt;String, Object&gt; parameters = new Hashtable&lt;String, Object&gt;();</span>
+
+    /** The locale to use when converting dates, floats and decimals */
+<span class="fc" id="L100">    private Locale locale = Locale.getDefault();</span>
+
+    /** The DateFormat to use for converting dates */
+<span class="fc" id="L103">    private DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, locale);</span>
+
+    /** The NumberFormat to use when converting floats and decimals */
+<span class="fc" id="L106">    private NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);</span>
+
+    public BaseValueParser()
+    {
+<span class="fc" id="L110">        this(DEFAULT_CHARACTER_ENCODING);</span>
+<span class="fc" id="L111">    }</span>
+
+    /**
+     * Constructor that takes a character encoding
+     * 
+     * @param characterEncoding desired character encoding
+     */
+    public BaseValueParser(String characterEncoding)
+    {
+<span class="fc" id="L120">        this(characterEncoding, Locale.getDefault());</span>
+<span class="fc" id="L121">    }</span>
+
+    /**
+     * Constructor that takes a character encoding and a locale
+     * 
+     * @param characterEncoding Sets the character encoding
+     * @param locale Sets the locale
+     */
+    public BaseValueParser(String characterEncoding, Locale locale)
+    {
+<span class="fc" id="L131">        super();</span>
+<span class="fc" id="L132">        recycle(characterEncoding);</span>
+<span class="fc" id="L133">        setLocale(locale);</span>
+<span class="fc" id="L134">    }</span>
+
+    /**
+     * Set a ParserService instance
+     * 
+     * @param parserService The parser service instance
+     */
+    @Override
+    public void setParserService(ParserService parserService)
+    {
+<span class="fc" id="L144">        this.parserService = parserService;</span>
+<span class="fc" id="L145">    }</span>
+
+    /**
+     * @see org.apache.avalon.framework.logger.LogEnabled#enableLogging(org.apache.avalon.framework.logger.Logger)
+     * @param logger The logger to be used
+     */
+    @Override
+    public void enableLogging(Logger logger)
+    {
+<span class="fc" id="L154">        this.logger = logger;</span>
+<span class="fc" id="L155">    }</span>
+
+    /**
+     * Provide an Avalon logger to the derived classes
+     *
+     * @return An Avalon logger instance
+     */
+    protected Logger getLogger()
+    {
+<span class="fc" id="L164">        return logger;</span>
+    }
+
+    /**
+     * Recycles the parser.
+     */
+    public final void recycle()
+    {
+<span class="fc" id="L172">        recycle(DEFAULT_CHARACTER_ENCODING);</span>
+<span class="fc" id="L173">    }</span>
+
+    /**
+     * Recycles the parser with a character encoding.
+     *
+     * @param characterEncoding the character encoding.
+     */
+    public final void recycle(String characterEncoding)
+    {
+<span class="fc" id="L182">        setCharacterEncoding(characterEncoding);</span>
+<span class="fc" id="L183">    }</span>
+
+    /**
+     * Disposes the parser.
+     */
+    @Override
+    public void dispose()
+    {
+<span class="fc" id="L191">        clear();</span>
+<span class="fc" id="L192">        disposed = true;</span>
+<span class="fc" id="L193">    }</span>
+
+    /**
+     * Clear all name/value pairs out of this object.
+     */
+    @Override
+    public void clear()
+    {
+<span class="fc" id="L201">        parameters.clear();</span>
+<span class="fc" id="L202">    }</span>
+
+    /**
+     * Set the character encoding that will be used by this ValueParser.
+     */
+    @Override
+    public final void setCharacterEncoding(String s)
+    {
+<span class="fc" id="L210">        characterEncoding = s;</span>
+<span class="fc" id="L211">    }</span>
+
+    /**
+     * Get the character encoding that will be used by this ValueParser.
+     */
+    @Override
+    public String getCharacterEncoding()
+    {
+<span class="fc" id="L219">        return characterEncoding;</span>
+    }
+
+    /**
+     * Set the locale that will be used by this ValueParser.
+     */
+    @Override
+    public final void setLocale(Locale l)
+    {
+<span class="fc" id="L228">        locale = l;</span>
+<span class="fc" id="L229">        setDateFormat(DateFormat.getDateInstance(DateFormat.SHORT, locale));</span>
+<span class="fc" id="L230">        setNumberFormat(NumberFormat.getNumberInstance(locale));</span>
+<span class="fc" id="L231">    }</span>
+
+    /**
+     * Get the locale that will be used by this ValueParser.
+     */
+    @Override
+    public final Locale getLocale()
+    {
+<span class="nc" id="L239">        return locale;</span>
+    }
+
+    /**
+     * Set the date format that will be used by this ValueParser.
+     */
+    @Override
+    public final void setDateFormat(DateFormat df)
+    {
+<span class="fc" id="L248">        dateFormat = df;</span>
+<span class="fc" id="L249">    }</span>
+
+    /**
+     * Get the date format that will be used by this ValueParser.
+     */
+    @Override
+    public DateFormat getDateFormat()
+    {
+<span class="nc" id="L257">        return dateFormat;</span>
+    }
+
+    /**
+     * Set the number format that will be used by this ValueParser.
+     */
+    @Override
+    public void setNumberFormat(NumberFormat nf)
+    {
+<span class="fc" id="L266">        numberFormat = nf;</span>
+<span class="fc" id="L267">    }</span>
+
+    /**
+     * Get the number format that will be used by this ValueParser.
+     */
+    @Override
+    public NumberFormat getNumberFormat()
+    {
+<span class="nc" id="L275">        return numberFormat;</span>
+    }
+
+    /**
+     * Add a name/value pair into this object.
+     *
+     * @param name A String with the name.
+     * @param value A double with the value.
+     */
+    @Override
+    public void add(String name, double value)
+    {
+<span class="fc" id="L287">        add(name, numberFormat.format(value));</span>
+<span class="fc" id="L288">    }</span>
+
+    /**
+     * Add a name/value pair into this object.
+     *
+     * @param name A String with the name.
+     * @param value An int with the value.
+     */
+    @Override
+    public void add(String name, int value)
+    {
+<span class="fc" id="L299">        add(name, (long)value);</span>
+<span class="fc" id="L300">    }</span>
+
+    /**
+     * Add a name/value pair into this object.
+     *
+     * @param name A String with the name.
+     * @param value An Integer with the value.
+     */
+    @Override
+    public void add(String name, Integer value)
+    {
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">        if (value != null)</span>
+        {
+<span class="fc" id="L313">            add(name, value.intValue());</span>
+        }
+<span class="fc" id="L315">    }</span>
+
+    /**
+     * Add a name/value pair into this object.
+     *
+     * @param name A String with the name.
+     * @param value A long with the value.
+     */
+    @Override
+    public void add(String name, long value)
+    {
+<span class="fc" id="L326">        add(name, Long.toString(value));</span>
+<span class="fc" id="L327">    }</span>
+
+    /**
+     * Add a name/value pair into this object.
+     *
+     * @param name A String with the name.
+     * @param value A long with the value.
+     */
+    @Override
+    public void add(String name, String value)
+    {
+<span class="fc bfc" id="L338" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L340">            String [] items = getParam(name);</span>
+<span class="fc" id="L341">            items = ArrayUtils.add(items, value);</span>
+<span class="fc" id="L342">            putParam(name, items);</span>
+        }
+<span class="fc" id="L344">    }</span>
+
+    /**
+     * Add an array of Strings for a key. This
+     * is simply adding all the elements in the
+     * array one by one.
+     *
+     * @param name A String with the name.
+     * @param value A String Array.
+     */
+    @Override
+    public void add(String name, String [] value)
+    {
+        // ArrayUtils.addAll() looks promising but it would also add
+        // null values into the parameters array, so we can't use that.
+<span class="fc bfc" id="L359" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc bfc" id="L361" title="All 2 branches covered.">            for (int i = 0 ; i &lt; value.length; i++)</span>
+            {
+<span class="fc bfc" id="L363" title="All 2 branches covered.">                if (value[i] != null)</span>
+                {
+<span class="fc" id="L365">                    add(name, value[i]);</span>
+                }
+            }
+        }
+<span class="fc" id="L369">    }</span>
+
+    /**
+     * Removes the named parameter from the contained hashtable. Wraps to the
+     * contained &lt;code&gt;Map.remove()&lt;/code&gt;.
+     *
+     * @return The value that was mapped to the key (a &lt;code&gt;String[]&lt;/code&gt;)
+     *         or &lt;code&gt;null&lt;/code&gt; if the key was not mapped.
+     */
+    @Override
+    public Object remove(String name)
+    {
+<span class="fc" id="L381">        return parameters.remove(convert(name));</span>
+    }
+
+    /**
+     * Trims the string data and applies the conversion specified in
+     * the property given by URL_CASE_FOLDING.  It returns a new
+     * string so that it does not destroy the value data.
+     *
+     * @param value A String to be processed.
+     * @return A new String converted to lowercase and trimmed.
+     */
+    @Override
+    public String convert(String value)
+    {
+<span class="fc" id="L395">        return convertAndTrim(value);</span>
+    }
+
+    /**
+     * Determine whether a given key has been inserted.  All keys are
+     * stored in lowercase strings, so override method to account for
+     * this.
+     *
+     * @param key An Object with the key to search for.
+     * @return True if the object is found.
+     */
+    @Override
+    public boolean containsKey(Object key)
+    {
+<span class="fc" id="L409">        return parameters.containsKey(convert(String.valueOf(key)));</span>
+    }
+
+    /**
+     * Gets the set of keys
+     *
+     * @return A &lt;code&gt;Set&lt;/code&gt; of the keys.
+     */
+    @Override
+    public Set&lt;String&gt; keySet()
+    {
+<span class="fc" id="L420">        return parameters.keySet();</span>
+    }
+
+    /**
+     * Returns all the available parameter names.
+     *
+     * @return A object array with the keys.
+     */
+    @Override
+    public String[] getKeys()
+    {
+<span class="fc" id="L431">        return keySet().toArray(new String[0]);</span>
+    }
+
+    /**
+     * Gets an iterator over the set of keys
+     *
+     * @return An &lt;code&gt;Iterator&lt;/code&gt; over the keys.
+     */
+    @Override
+    public Iterator&lt;String&gt; iterator()
+    {
+<span class="nc" id="L442">        return parameters.keySet().iterator();</span>
+    }
+
+    /**
+     * Returns a Boolean object for the given string. If the value
+     * can not be parsed as a boolean, null is returned.
+     * &lt;p&gt;
+     * Valid values for true: true, t, on, 1, yes, y&lt;br&gt;
+     * Valid values for false: false, f, off, 0, no, n&lt;br&gt;
+     * &lt;p&gt;
+     * The string is compared without reguard to case.
+     *
+     * @param string A String with the value.
+     * @return A Boolean.
+     */
+    private Boolean parseBoolean(String string)
+    {
+<span class="fc" id="L459">        Boolean result = null;</span>
+<span class="fc" id="L460">        String value = StringUtils.trim(string);</span>
+
+<span class="fc bfc" id="L462" title="All 2 branches covered.">        if (StringUtils.isNotEmpty(value))</span>
+        {
+<span class="fc" id="L464">            for (int cnt = 0;</span>
+<span class="fc bfc" id="L465" title="All 2 branches covered.">            cnt &lt; Math.max(TRUE_VALUES.length, FALSE_VALUES.length); cnt++)</span>
+            {
+                // Short-cut evaluation or bust!
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">                if (cnt &lt; TRUE_VALUES.length &amp;&amp;</span>
+<span class="fc bfc" id="L469" title="All 2 branches covered.">                   value.equalsIgnoreCase(TRUE_VALUES[cnt]))</span>
+                {
+<span class="fc" id="L471">                    result = Boolean.TRUE;</span>
+<span class="fc" id="L472">                    break;</span>
+                }
+
+<span class="pc bpc" id="L475" title="1 of 2 branches missed.">                if (cnt &lt; FALSE_VALUES.length &amp;&amp;</span>
+<span class="fc bfc" id="L476" title="All 2 branches covered.">                   value.equalsIgnoreCase(FALSE_VALUES[cnt]))</span>
+                {
+<span class="fc" id="L478">                    result = Boolean.FALSE;</span>
+<span class="fc" id="L479">                    break;</span>
+                }
+            }
+
+<span class="pc bpc" id="L483" title="1 of 4 branches missed.">            if (result == null &amp;&amp; getLogger().isWarnEnabled() == true)</span>
+            {
+<span class="fc" id="L485">                getLogger().warn(&quot;Parameter with value of (&quot;</span>
+                        + value + &quot;) could not be converted to a Boolean&quot;);
+            }
+        }
+
+<span class="fc" id="L490">        return result;</span>
+    }
+
+    /**
+     * Return a boolean for the given name.  If the name does not
+     * exist, return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A boolean.
+     */
+    @Override
+    public boolean getBoolean(String name, boolean defaultValue)
+    {
+<span class="fc" id="L504">        Boolean result = getBooleanObject(name);</span>
+<span class="fc bfc" id="L505" title="All 2 branches covered.">        return (result == null ? defaultValue : result.booleanValue());</span>
+    }
+
+    /**
+     * Return a boolean for the given name.  If the name does not
+     * exist, return false.
+     *
+     * @param name A String with the name.
+     * @return A boolean.
+     */
+    @Override
+    public boolean getBoolean(String name)
+    {
+<span class="fc" id="L518">        return getBoolean(name, false);</span>
+    }
+
+    /**
+     * Return an array of booleans for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A boolean[].
+     */
+    @Override
+    public boolean[] getBooleans(String name)
+    {
+<span class="fc" id="L531">        boolean[] result = null;</span>
+<span class="fc" id="L532">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L533" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L535">            result = new boolean[value.length];</span>
+<span class="fc bfc" id="L536" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+            	// default to false
+<span class="fc" id="L539">            	result[i] = false;</span>
+            	
+            	// update with parsed value if exists
+<span class="fc" id="L542">            	Boolean bool = parseBoolean(value[i]);</span>
+<span class="fc bfc" id="L543" title="All 2 branches covered.">                if ( bool != null )</span>
+                {
+<span class="fc" id="L545">                	result[i] = bool.booleanValue();</span>
+                }            	
+            }
+        }
+<span class="fc" id="L549">        return result;</span>
+    }
+
+    /**
+     * Returns a Boolean object for the given name.  If the parameter
+     * does not exist or can not be parsed as a boolean, null is returned.
+     * &lt;p&gt;
+     * Valid values for true: true, on, 1, yes&lt;br&gt;
+     * Valid values for false: false, off, 0, no&lt;br&gt;
+     * &lt;p&gt;
+     * The string is compared without reguard to case.
+     *
+     * @param name A String with the name.
+     * @return A Boolean.
+     */
+    @Override
+    public Boolean getBooleanObject(String name)
+    {
+<span class="fc" id="L567">        return parseBoolean(getString(name));</span>
+    }
+
+    /**
+     * Returns a Boolean object for the given name.  If the parameter
+     * does not exist or can not be parsed as a boolean, null is returned.
+     * &lt;p&gt;
+     * Valid values for true: true, on, 1, yes&lt;br&gt;
+     * Valid values for false: false, off, 0, no&lt;br&gt;
+     * &lt;p&gt;
+     * The string is compared without reguard to case.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A Boolean.
+     */
+    @Override
+    public Boolean getBooleanObject(String name, Boolean defaultValue)
+    {
+<span class="fc" id="L586">        Boolean result = getBooleanObject(name);</span>
+<span class="fc bfc" id="L587" title="All 2 branches covered.">        return (result == null ? defaultValue : result);</span>
+    }
+
+    /**
+     * Return an array of Booleans for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A Boolean[].
+     */
+    @Override
+    public Boolean[] getBooleanObjects(String name)
+    {
+<span class="fc" id="L600">        Boolean[] result = null;</span>
+<span class="fc" id="L601">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L602" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L604">            result = new Boolean[value.length];</span>
+<span class="fc bfc" id="L605" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L607">                result[i] = parseBoolean(value[i]);</span>
+            }
+        }
+<span class="fc" id="L610">        return result;</span>
+    }
+
+    /**
+     * Return a {@link Number} for the given string.
+     *
+     * @param string A String with the value.
+     * @return A Number.
+     *
+     */
+    private Number parseNumber(String string)
+    {
+<span class="fc" id="L622">        Number result = null;</span>
+<span class="fc" id="L623">        String value = StringUtils.trim(string);</span>
+
+<span class="fc bfc" id="L625" title="All 2 branches covered.">        if (StringUtils.isNotEmpty(value))</span>
+        {
+<span class="fc" id="L627">            ParsePosition pos = new ParsePosition(0);</span>
+<span class="fc" id="L628">            Number number = numberFormat.parse(value, pos);</span>
+
+<span class="fc bfc" id="L630" title="All 2 branches covered.">            if (pos.getIndex() == value.length())</span>
+            {
+                // completely parsed
+<span class="fc" id="L633">                result = number;</span>
+            }
+            else
+            {
+<span class="pc bpc" id="L637" title="1 of 2 branches missed.">                if (getLogger().isWarnEnabled())</span>
+                {
+<span class="fc" id="L639">                    getLogger().warn(&quot;Parameter with value of (&quot;</span>
+<span class="fc" id="L640">                            + value + &quot;) could not be converted to a Number at position &quot; + pos.getIndex());</span>
+                }
+            }
+        }
+
+<span class="fc" id="L645">        return result;</span>
+    }
+
+    /**
+     * Return a {@link Number} for the given name.  If the name does not
+     * exist, return null. This is the base function for all numbers.
+     *
+     * @param name A String with the name.
+     * @return A Number.
+     *
+     */
+    private Number getNumber(String name)
+    {
+<span class="fc" id="L658">        return parseNumber(getString(name));</span>
+    }
+
+    /**
+     * Return a double for the given name.  If the name does not
+     * exist, return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A double.
+     */
+    @Override
+    public double getDouble(String name, double defaultValue)
+    {
+<span class="fc" id="L672">        Number number = getNumber(name);</span>
+<span class="fc bfc" id="L673" title="All 2 branches covered.">        return (number == null ? defaultValue : number.doubleValue());</span>
+    }
+
+    /**
+     * Return a double for the given name.  If the name does not
+     * exist, return 0.0.
+     *
+     * @param name A String with the name.
+     * @return A double.
+     */
+    @Override
+    public double getDouble(String name)
+    {
+<span class="fc" id="L686">        return getDouble(name, 0.0);</span>
+    }
+
+    /**
+     * Return an array of doubles for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A double[].
+     */
+    @Override
+    public double[] getDoubles(String name)
+    {
+<span class="fc" id="L699">        double[] result = null;</span>
+<span class="fc" id="L700">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L701" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L703">            result = new double[value.length];</span>
+<span class="fc bfc" id="L704" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L706">                Number number = parseNumber(value[i]);</span>
+<span class="fc bfc" id="L707" title="All 2 branches covered.">                result[i] = (number == null ? 0.0 : number.doubleValue());</span>
+            }
+        }
+<span class="fc" id="L710">        return result;</span>
+    }
+
+    /**
+     * Return a Double for the given name.  If the name does not
+     * exist, return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A double.
+     */
+    @Override
+    public Double getDoubleObject(String name, Double defaultValue)
+    {
+<span class="fc" id="L724">        Number result = getNumber(name);</span>
+<span class="fc bfc" id="L725" title="All 2 branches covered.">        return (result == null ? defaultValue : new Double(result.doubleValue()));</span>
+    }
+
+    /**
+     * Return a Double for the given name.  If the name does not
+     * exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A double.
+     */
+    @Override
+    public Double getDoubleObject(String name)
+    {
+<span class="fc" id="L738">        return getDoubleObject(name, null);</span>
+    }
+
+    /**
+     * Return an array of doubles for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A double[].
+     */
+    @Override
+    public Double[] getDoubleObjects(String name)
+    {
+<span class="fc" id="L751">        Double[] result = null;</span>
+<span class="fc" id="L752">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L753" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L755">            result = new Double[value.length];</span>
+<span class="fc bfc" id="L756" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L758">                Number number = parseNumber(value[i]);</span>
+<span class="fc bfc" id="L759" title="All 2 branches covered.">                result[i] = (number == null ? null : new Double(number.doubleValue()));</span>
+            }
+        }
+<span class="fc" id="L762">        return result;</span>
+    }
+
+    /**
+     * Return a float for the given name.  If the name does not
+     * exist, return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A float.
+     */
+    @Override
+    public float getFloat(String name, float defaultValue)
+    {
+<span class="fc" id="L776">        Number number = getNumber(name);</span>
+<span class="fc bfc" id="L777" title="All 2 branches covered.">        return (number == null ? defaultValue : number.floatValue());</span>
+    }
+
+    /**
+     * Return a float for the given name.  If the name does not
+     * exist, return 0.0.
+     *
+     * @param name A String with the name.
+     * @return A float.
+     */
+    @Override
+    public float getFloat(String name)
+    {
+<span class="fc" id="L790">        return getFloat(name, 0.0f);</span>
+    }
+
+    /**
+     * Return an array of floats for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A float[].
+     */
+    @Override
+    public float[] getFloats(String name)
+    {
+<span class="fc" id="L803">        float[] result = null;</span>
+<span class="fc" id="L804">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L805" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L807">            result = new float[value.length];</span>
+<span class="fc bfc" id="L808" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L810">                Number number = parseNumber(value[i]);</span>
+<span class="fc bfc" id="L811" title="All 2 branches covered.">                result[i] = (number == null ? 0.0f : number.floatValue());</span>
+            }
+        }
+<span class="fc" id="L814">        return result;</span>
+    }
+
+    /**
+     * Return a Float for the given name.  If the name does not
+     * exist, return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A Float.
+     */
+    @Override
+    public Float getFloatObject(String name, Float defaultValue)
+    {
+<span class="fc" id="L828">        Number result = getNumber(name);</span>
+<span class="fc bfc" id="L829" title="All 2 branches covered.">        return (result == null ? defaultValue : new Float(result.floatValue()));</span>
+    }
+
+    /**
+     * Return a float for the given name.  If the name does not
+     * exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A Float.
+     */
+    @Override
+    public Float getFloatObject(String name)
+    {
+<span class="fc" id="L842">        return getFloatObject(name, null);</span>
+    }
+
+    /**
+     * Return an array of floats for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A float[].
+     */
+    @Override
+    public Float[] getFloatObjects(String name)
+    {
+<span class="fc" id="L855">        Float[] result = null;</span>
+<span class="fc" id="L856">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L857" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L859">            result = new Float[value.length];</span>
+<span class="fc bfc" id="L860" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L862">                Number number = parseNumber(value[i]);</span>
+<span class="fc bfc" id="L863" title="All 2 branches covered.">                result[i] = (number == null ? null : new Float(number.floatValue()));</span>
+            }
+        }
+<span class="fc" id="L866">        return result;</span>
+    }
+
+    /**
+     * Return a BigDecimal for the given name.  If the name does not
+     * exist, return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A BigDecimal.
+     */
+    @Override
+    public BigDecimal getBigDecimal(String name, BigDecimal defaultValue)
+    {
+<span class="fc" id="L880">        Number result = getNumber(name);</span>
+<span class="fc bfc" id="L881" title="All 2 branches covered.">        return (result == null ? defaultValue : new BigDecimal(result.doubleValue()));</span>
+    }
+
+    /**
+     * Return a BigDecimal for the given name.  If the name does not
+     * exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A BigDecimal.
+     */
+    @Override
+    public BigDecimal getBigDecimal(String name)
+    {
+<span class="fc" id="L894">        return getBigDecimal(name, null);</span>
+    }
+
+    /**
+     * Return an array of BigDecimals for the given name.  If the name
+     * does not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A BigDecimal[].
+     */
+    @Override
+    public BigDecimal[] getBigDecimals(String name)
+    {
+<span class="fc" id="L907">        BigDecimal[] result = null;</span>
+<span class="fc" id="L908">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L909" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L911">            result = new BigDecimal[value.length];</span>
+<span class="fc bfc" id="L912" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L914">                Number number = parseNumber(value[i]);</span>
+<span class="fc bfc" id="L915" title="All 2 branches covered.">                result[i] = (number == null ? null : new BigDecimal(number.doubleValue()));</span>
+            }
+        }
+<span class="fc" id="L918">        return result;</span>
+    }
+
+    /**
+     * Return an int for the given name.  If the name does not exist,
+     * return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return An int.
+     */
+    @Override
+    public int getInt(String name, int defaultValue)
+    {
+<span class="fc" id="L932">        Number result = getNumber(name);</span>
+<span class="pc bpc" id="L933" title="1 of 4 branches missed.">        return (result == null || result instanceof Double ? defaultValue : result.intValue());</span>
+    }
+
+    /**
+     * Return an int for the given name.  If the name does not exist,
+     * return 0.
+     *
+     * @param name A String with the name.
+     * @return An int.
+     */
+    @Override
+    public int getInt(String name)
+    {
+<span class="fc" id="L946">        return getInt(name, 0);</span>
+    }
+
+    /**
+     * Return an array of ints for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return An int[].
+     */
+    @Override
+    public int[] getInts(String name)
+    {
+<span class="fc" id="L959">        int[] result = null;</span>
+<span class="fc" id="L960">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L961" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L963">            result = new int[value.length];</span>
+<span class="fc bfc" id="L964" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L966">                Number number = parseNumber(value[i]);</span>
+<span class="pc bpc" id="L967" title="1 of 4 branches missed.">                result[i] = (number == null || number instanceof Double ? 0 : number.intValue());</span>
+            }
+        }
+<span class="fc" id="L970">        return result;</span>
+    }
+
+    /**
+     * Return an Integer for the given name.  If the name does not exist,
+     * return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return An Integer.
+     */
+    @Override
+    public Integer getIntObject(String name, Integer defaultValue)
+    {
+<span class="fc" id="L984">        Number result = getNumber(name);</span>
+<span class="pc bpc" id="L985" title="1 of 4 branches missed.">        return (result == null || result instanceof Double ? defaultValue : Integer.valueOf(result.intValue()));</span>
+    }
+
+    /**
+     * Return an Integer for the given name.  If the name does not exist,
+     * return null.
+     *
+     * @param name A String with the name.
+     * @return An Integer.
+     */
+    @Override
+    public Integer getIntObject(String name)
+    {
+<span class="fc" id="L998">        return getIntObject(name, null);</span>
+    }
+
+    /**
+     * Return an array of Integers for the given name.  If the name
+     * does not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return An Integer[].
+     */
+    @Override
+    public Integer[] getIntObjects(String name)
+    {
+<span class="fc" id="L1011">        Integer[] result = null;</span>
+<span class="fc" id="L1012">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L1013" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L1015">            result = new Integer[value.length];</span>
+<span class="fc bfc" id="L1016" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L1018">                Number number = parseNumber(value[i]);</span>
+<span class="pc bpc" id="L1019" title="1 of 4 branches missed.">                result[i] = (number == null || number instanceof Double ? null : Integer.valueOf(number.intValue()));</span>
+            }
+        }
+<span class="fc" id="L1022">        return result;</span>
+    }
+
+    /**
+     * Return a long for the given name.  If the name does not exist,
+     * return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A long.
+     */
+    @Override
+    public long getLong(String name, long defaultValue)
+    {
+<span class="fc" id="L1036">        Number result = getNumber(name);</span>
+<span class="pc bpc" id="L1037" title="1 of 4 branches missed.">        return (result == null || result instanceof Double ? defaultValue : result.longValue());</span>
+    }
+
+    /**
+     * Return a long for the given name.  If the name does not exist,
+     * return 0.
+     *
+     * @param name A String with the name.
+     * @return A long.
+     */
+    @Override
+    public long getLong(String name)
+    {
+<span class="fc" id="L1050">        return getLong(name, 0);</span>
+    }
+
+    /**
+     * Return an array of longs for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A long[].
+     */
+    @Override
+    public long[] getLongs(String name)
+    {
+<span class="fc" id="L1063">        long[] result = null;</span>
+<span class="fc" id="L1064">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L1065" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L1067">            result = new long[value.length];</span>
+<span class="fc bfc" id="L1068" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L1070">                Number number = parseNumber(value[i]);</span>
+<span class="pc bpc" id="L1071" title="1 of 4 branches missed.">                result[i] = (number == null || number instanceof Double ? 0L : number.longValue());</span>
+            }
+        }
+<span class="fc" id="L1074">        return result;</span>
+    }
+
+    /**
+     * Return an array of Longs for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A Long[].
+     */
+    @Override
+    public Long[] getLongObjects(String name)
+    {
+<span class="fc" id="L1087">        Long[] result = null;</span>
+<span class="fc" id="L1088">        String value[] = getParam(name);</span>
+<span class="fc bfc" id="L1089" title="All 2 branches covered.">        if (value != null)</span>
+        {
+<span class="fc" id="L1091">            result = new Long[value.length];</span>
+<span class="fc bfc" id="L1092" title="All 2 branches covered.">            for (int i = 0; i &lt; value.length; i++)</span>
+            {
+<span class="fc" id="L1094">                Number number = parseNumber(value[i]);</span>
+<span class="pc bpc" id="L1095" title="1 of 4 branches missed.">                result[i] = (number == null || number instanceof Double ? null : Long.valueOf(number.longValue()));</span>
+            }
+        }
+<span class="fc" id="L1098">        return result;</span>
+    }
+
+    /**
+     * Return a Long for the given name.  If the name does
+     * not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A Long.
+     */
+    @Override
+    public Long getLongObject(String name)
+    {
+<span class="fc" id="L1111">        return getLongObject(name, null);</span>
+    }
+
+    /**
+     * Return a Long for the given name.  If the name does
+     * not exist, return the default value.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A Long.
+     */
+    @Override
+    public Long getLongObject(String name, Long defaultValue)
+    {
+<span class="fc" id="L1125">        Number result = getNumber(name);</span>
+<span class="pc bpc" id="L1126" title="1 of 4 branches missed.">        return (result == null || result instanceof Double ? defaultValue : Long.valueOf(result.longValue()));</span>
+    }
+
+    /**
+     * Return a byte for the given name.  If the name does not exist,
+     * return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A byte.
+     */
+    @Override
+    public byte getByte(String name, byte defaultValue)
+    {
+<span class="fc" id="L1140">        Number result = getNumber(name);</span>
+<span class="pc bpc" id="L1141" title="1 of 4 branches missed.">        return (result == null || result instanceof Double ? defaultValue : result.byteValue());</span>
+    }
+
+    /**
+     * Return a byte for the given name.  If the name does not exist,
+     * return 0.
+     *
+     * @param name A String with the name.
+     * @return A byte.
+     */
+    @Override
+    public byte getByte(String name)
+    {
+<span class="fc" id="L1154">        return getByte(name, (byte) 0);</span>
+    }
+
+    /**
+     * Return an array of bytes for the given name.  If the name does
+     * not exist, return null. The array is returned according to the
+     * HttpRequest's character encoding.
+     *
+     * @param name A String with the name.
+     * @return A byte[].
+     * @throws UnsupportedEncodingException Generic exception
+     */
+    @Override
+    public byte[] getBytes(String name)
+            throws UnsupportedEncodingException
+    {
+<span class="fc" id="L1170">        byte result[] = null;</span>
+<span class="fc" id="L1171">        String value = getString(name);</span>
+<span class="pc bpc" id="L1172" title="1 of 2 branches missed.">        if (value != null)</span>
+        {
+<span class="fc" id="L1174">            result = value.getBytes(getCharacterEncoding());</span>
+        }
+<span class="fc" id="L1176">        return result;</span>
+    }
+
+    /**
+     * Return a byte for the given name.  If the name does not exist,
+     * return defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A byte.
+     */
+    @Override
+    public Byte getByteObject(String name, Byte defaultValue)
+    {
+<span class="fc" id="L1190">        Number result = getNumber(name);</span>
+<span class="pc bpc" id="L1191" title="1 of 4 branches missed.">        return (result == null || result instanceof Double ? defaultValue : Byte.valueOf(result.byteValue()));</span>
+    }
+
+    /**
+     * Return a byte for the given name.  If the name does not exist,
+     * return 0.
+     *
+     * @param name A String with the name.
+     * @return A byte.
+     */
+    @Override
+    public Byte getByteObject(String name)
+    {
+<span class="fc" id="L1204">        return getByteObject(name, null);</span>
+    }
+
+    /**
+     * Return a String for the given name.  If the name does not
+     * exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A String or null if the key is unknown.
+     */
+    @Override
+    public String getString(String name)
+    {
+<span class="fc" id="L1217">        String [] value = getParam(name);</span>
+<span class="pc bpc" id="L1218" title="1 of 4 branches missed.">        return value == null || value.length == 0 ? null : value[0];</span>
+    }
+
+    /**
+     * Return a String for the given name.  If the name does not
+     * exist, return null. It is the same as the getString() method
+     * however has been added for simplicity when working with
+     * template tools such as Velocity which allow you to do
+     * something like this:
+     *
+     * &lt;code&gt;$data.Parameters.form_variable_name&lt;/code&gt;
+     *
+     * @param name A String with the name.
+     * @return A String.
+     */
+    @Override
+    public String get(String name)
+    {
+<span class="fc" id="L1236">        return getString(name);</span>
+    }
+
+    /**
+     * Return a String for the given name.  If the name does not
+     * exist, return the defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A String.
+     */
+    @Override
+    public String getString(String name, String defaultValue)
+    {
+<span class="fc" id="L1250">        String value = getString(name);</span>
+<span class="fc bfc" id="L1251" title="All 2 branches covered.">        return StringUtils.isEmpty(value) ? defaultValue : value;</span>
+    }
+
+    /**
+     * Set a parameter to a specific value.
+     *
+     * This is useful if you want your action to override the values
+     * of the parameters for the screen to use.
+     * @param name The name of the parameter.
+     * @param value The value to set.
+     */
+    @Override
+    public void setString(String name, String value)
+    {
+<span class="pc bpc" id="L1265" title="1 of 2 branches missed.">        if (value != null)</span>
+        {
+<span class="fc" id="L1267">            putParam(name, new String[]{value});</span>
+        }
+<span class="fc" id="L1269">    }</span>
+
+    /**
+     * Return an array of Strings for the given name.  If the name
+     * does not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A String[].
+     */
+    @Override
+    public String[] getStrings(String name)
+    {
+<span class="fc" id="L1281">        return getParam(name);</span>
+    }
+
+    /**
+     * Return an array of Strings for the given name.  If the name
+     * does not exist, return the defaultValue.
+     *
+     * @param name A String with the name.
+     * @param defaultValue The default value.
+     * @return A String[].
+     */
+    @Override
+    public String[] getStrings(String name, String[] defaultValue)
+    {
+<span class="nc" id="L1295">        String[] value = getParam(name);</span>
+<span class="nc bnc" id="L1296" title="All 4 branches missed.">        return value == null || value.length == 0 ? defaultValue : value;</span>
+    }
+
+    /**
+     * Set a parameter to a specific value.
+     *
+     * This is useful if you want your action to override the values
+     * of the parameters for the screen to use.
+     * @param name The name of the parameter.
+     * @param values The value to set.
+     */
+    @Override
+    public void setStrings(String name, String[] values)
+    {
+<span class="pc bpc" id="L1310" title="1 of 2 branches missed.">        if (values != null)</span>
+        {
+<span class="fc" id="L1312">            putParam(name, values);</span>
+        }
+<span class="fc" id="L1314">    }</span>
+
+    /**
+     * Return an Object for the given name.  If the name does not
+     * exist, return null.
+     *
+     * @param name A String with the name.
+     * @return An Object.
+     */
+    @Override
+    public Object getObject(String name)
+    {
+<span class="nc" id="L1326">        return getString(name);</span>
+    }
+
+    /**
+     * Return an array of Objects for the given name.  If the name
+     * does not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return An Object[].
+     */
+    @Override
+    public Object[] getObjects(String name)
+    {
+<span class="nc" id="L1339">        return getParam(name);</span>
+    }
+
+    /**
+     * Returns a {@link java.util.Date} object.  String is parsed by supplied
+     * DateFormat.  If the name does not exist or the value could not be
+     * parsed into a date return the defaultValue.
+     *
+     * @param name A String with the name.
+     * @param df A DateFormat.
+     * @param defaultValue The default value.
+     * @return A Date.
+     */
+    @Override
+    public Date getDate(String name, DateFormat df, Date defaultValue)
+    {
+<span class="fc" id="L1355">        Date result = defaultValue;</span>
+<span class="fc" id="L1356">        String value = StringUtils.trim(getString(name));</span>
+<span class="pc bpc" id="L1357" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(value))</span>
+        {
+            try
+            {
+                // Reject invalid dates.
+<span class="fc" id="L1362">                df.setLenient(false);</span>
+<span class="fc" id="L1363">                result = df.parse(value);</span>
+            }
+<span class="nc" id="L1365">            catch (ParseException e)</span>
+            {
+<span class="nc" id="L1367">                logConversionFailure(name, value, &quot;Date&quot;);</span>
+<span class="fc" id="L1368">            }</span>
+        }
+
+<span class="fc" id="L1371">        return result;</span>
+    }
+
+    /**
+     * Returns a {@link java.util.Date} object.  If there are DateSelector or
+     * TimeSelector style parameters then these are used.  If not and there
+     * is a parameter 'name' then this is parsed by DateFormat.  If the
+     * name does not exist, return null.
+     *
+     * @param name A String with the name.
+     * @return A Date.
+     */
+    @Override
+    public Date getDate(String name)
+    {
+<span class="fc" id="L1386">        return getDate(name, dateFormat, null);</span>
+    }
+
+    /**
+     * Returns a {@link java.util.Date} object.  String is parsed by supplied
+     * DateFormat.  If the name does not exist, return null.
+     *
+     * @param name A String with the name.
+     * @param df A DateFormat.
+     * @return A Date.
+     */
+    @Override
+    public Date getDate(String name, DateFormat df)
+    {
+<span class="nc" id="L1400">        return getDate(name, df, null);</span>
+    }
+
+    /**
+     * Uses bean introspection to set writable properties of bean from
+     * the parameters, where a (case-insensitive) name match between
+     * the bean property and the parameter is looked for.
+     *
+     * @param bean An Object.
+     * @throws Exception a generic exception.
+     */
+    @Override
+    public void setProperties(Object bean) throws Exception
+    {
+<span class="fc" id="L1414">        Class&lt;?&gt; beanClass = bean.getClass();</span>
+<span class="fc" id="L1415">        PropertyDescriptor[] props</span>
+<span class="fc" id="L1416">                = Introspector.getBeanInfo(beanClass).getPropertyDescriptors();</span>
+
+<span class="fc bfc" id="L1418" title="All 2 branches covered.">        for ( PropertyDescriptor pd : props )</span>
+        {
+<span class="fc" id="L1420">            String propname = pd.getName();</span>
+<span class="fc" id="L1421">            Method setter = pd.getWriteMethod();</span>
+<span class="fc bfc" id="L1422" title="All 4 branches covered.">            if (setter != null &amp;&amp; containsKey(propname))</span>
+            {
+<span class="fc" id="L1424">                setProperty(bean, pd);</span>
+            }
+        }
+<span class="fc" id="L1427">    }</span>
+
+    /**
+     * Simple method that attempts to get a textual representation of
+     * this object's name/value pairs.  String[] handling is currently
+     * a bit rough.
+     *
+     * @return A textual representation of the parsed name/value pairs.
+     */
+    @Override
+    public String toString()
+    {
+<span class="fc" id="L1439">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L1440" title="All 2 branches covered.">        for (String name : keySet())</span>
+        {
+<span class="fc" id="L1442">            sb.append('{');</span>
+<span class="fc" id="L1443">            sb.append(name);</span>
+<span class="fc" id="L1444">            sb.append('=');</span>
+<span class="fc" id="L1445">            Object [] params = getToStringParam(name);</span>
+
+<span class="pc bpc" id="L1447" title="1 of 2 branches missed.">            if (params == null)</span>
+            {
+<span class="nc" id="L1449">                sb.append(&quot;unknown?&quot;);</span>
+            }
+<span class="pc bpc" id="L1451" title="1 of 2 branches missed.">            else if (params.length == 0)</span>
+            {
+<span class="nc" id="L1453">                sb.append(&quot;empty&quot;);</span>
+            }
+            else
+            {
+<span class="fc" id="L1457">                sb.append('[');</span>
+<span class="fc" id="L1458">                sb.append(StringUtils.join(params, &quot;, &quot;));</span>
+<span class="fc" id="L1459">                sb.append(']');</span>
+            }
+<span class="fc" id="L1461">            sb.append(&quot;}\n&quot;);</span>
+<span class="fc" id="L1462">        }</span>
+
+<span class="fc" id="L1464">        return sb.toString();</span>
+    }
+
+    /**
+     * This method is only used in toString() and can be used by
+     * derived classes to add their local parameters to the toString()
+
+     * @param name A string with the name
+     *
+     * @return the value object array or null if not set
+     */
+    protected Object [] getToStringParam(final String name)
+    {
+<span class="fc" id="L1477">        return getParam(name);</span>
+    }
+
+    /**
+     * Set the property 'prop' in the bean to the value of the
+     * corresponding parameters.  Supports all types supported by
+     * getXXX methods plus a few more that come for free because
+     * primitives have to be wrapped before being passed to invoke
+     * anyway.
+     *
+     * @param bean An Object.
+     * @param prop A PropertyDescriptor.
+     * @@throws Exception a generic exception.
+     */
+    protected void setProperty(Object bean,
+                               PropertyDescriptor prop)
+            throws Exception
+    {
+<span class="pc bpc" id="L1495" title="1 of 2 branches missed.">        if (prop instanceof IndexedPropertyDescriptor)</span>
+        {
+<span class="nc" id="L1497">            throw new Exception(prop.getName() +</span>
+                    &quot; is an indexed property (not supported)&quot;);
+        }
+
+<span class="fc" id="L1501">        Method setter = prop.getWriteMethod();</span>
+<span class="pc bpc" id="L1502" title="1 of 2 branches missed.">        if (setter == null)</span>
+        {
+<span class="nc" id="L1504">            throw new Exception(prop.getName() +</span>
+                    &quot; is a read only property&quot;);
+        }
+
+<span class="fc" id="L1508">        Class&lt;?&gt; propclass = prop.getPropertyType();</span>
+<span class="fc" id="L1509">        Object arg = null;</span>
+
+<span class="fc bfc" id="L1511" title="All 2 branches covered.">        if (propclass == String.class)</span>
+        {
+<span class="fc" id="L1513">            arg = getString(prop.getName());</span>
+        }
+<span class="pc bpc" id="L1515" title="2 of 4 branches missed.">        else if (propclass == Byte.class || propclass == Byte.TYPE)</span>
+        {
+<span class="nc" id="L1517">            arg = getByteObject(prop.getName());</span>
+        }
+<span class="pc bpc" id="L1519" title="1 of 4 branches missed.">        else if (propclass == Integer.class || propclass == Integer.TYPE)</span>
+        {
+<span class="fc" id="L1521">            arg = getIntObject(prop.getName());</span>
+        }
+<span class="pc bpc" id="L1523" title="1 of 4 branches missed.">        else if (propclass == Long.class || propclass == Long.TYPE)</span>
+        {
+<span class="fc" id="L1525">            arg = getLongObject(prop.getName());</span>
+        }
+<span class="pc bpc" id="L1527" title="1 of 4 branches missed.">        else if (propclass == Boolean.class || propclass == Boolean.TYPE)</span>
+        {
+<span class="fc" id="L1529">            arg = getBooleanObject(prop.getName());</span>
+        }
+<span class="pc bpc" id="L1531" title="2 of 4 branches missed.">        else if (propclass == Double.class || propclass == Double.TYPE)</span>
+        {
+<span class="fc" id="L1533">            arg = getDoubleObject(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1535" title="All 4 branches missed.">        else if (propclass == Float.class || propclass == Float.TYPE)</span>
+        {
+<span class="nc" id="L1537">            arg = getFloatObject(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1539" title="All 2 branches missed.">        else if (propclass == BigDecimal.class)</span>
+        {
+<span class="nc" id="L1541">            arg = getBigDecimal(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1543" title="All 2 branches missed.">        else if (propclass == String[].class)</span>
+        {
+<span class="nc" id="L1545">            arg = getStrings(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1547" title="All 2 branches missed.">        else if (propclass == Object.class)</span>
+        {
+<span class="nc" id="L1549">            arg = getObject(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1551" title="All 2 branches missed.">        else if (propclass == int[].class)</span>
+        {
+<span class="nc" id="L1553">            arg = getInts(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1555" title="All 2 branches missed.">        else if (propclass == Integer[].class)</span>
+        {
+<span class="nc" id="L1557">            arg = getIntObjects(prop.getName());</span>
+        }
+<span class="nc bnc" id="L1559" title="All 2 branches missed.">        else if (propclass == Date.class)</span>
+        {
+<span class="nc" id="L1561">            arg = getDate(prop.getName());</span>
+        }
+        else
+        {
+<span class="nc" id="L1565">            throw new Exception(&quot;property &quot;</span>
+<span class="nc" id="L1566">                    + prop.getName()</span>
+                    + &quot; is of unsupported type &quot;
+<span class="nc" id="L1568">                    + propclass.toString());</span>
+        }
+
+<span class="fc" id="L1571">        setter.invoke(bean, arg);</span>
+<span class="fc" id="L1572">    }</span>
+
+    /**
+     * Puts a key into the parameters map. Makes sure that the name is always
+     * mapped correctly. This method also enforces the usage of arrays for the
+     * parameters.
+     *
+     * @param name A String with the name.
+     * @param value An array of Objects with the values.
+     *
+     */
+    protected void putParam(final String name, final String [] value)
+    {
+<span class="fc" id="L1585">        String key = convert(name);</span>
+<span class="pc bpc" id="L1586" title="1 of 2 branches missed.">        if (key != null)</span>
+        {
+<span class="fc" id="L1588">            parameters.put(key, value);</span>
+        }
+<span class="fc" id="L1590">    }</span>
+
+    /**
+     * fetches a key from the parameters map. Makes sure that the name is
+     * always mapped correctly.
+     *
+     * @param name A string with the name
+     *
+     * @return the value object array or null if not set
+     */
+    protected String [] getParam(final String name)
+    {
+<span class="fc" id="L1602">        String key = convert(name);</span>
+<span class="fc" id="L1603">        Object value = parameters.get(key);</span>
+
+        // todo sgoeschl 20070405 quick fix for Scott's test case - need to
+        // be reworked for proper functioning according to TV
+<span class="fc bfc" id="L1607" title="All 2 branches covered.">        if(value instanceof String[])</span>
+        {
+<span class="fc" id="L1609">            return (String []) parameters.get(key);</span>
+        }
+        else
+        {
+<span class="fc" id="L1613">            return null;</span>
+        }
+    }
+
+
+    /** recyclable support **/
+
+    /**
+     * The disposed flag.
+     */
+    private boolean disposed;
+
+    /**
+     * Checks whether the object is disposed.
+     *
+     * @return true, if the object is disposed.
+     */
+    public boolean isDisposed()
+    {
+<span class="fc" id="L1632">        return disposed;</span>
+    }
+
+    /**
+     * Writes a log message about a conversion failure.
+     *
+     * @param paramName name of the parameter which could not be converted
+     * @param value value of the parameter
+     * @param type target data type.
+     */
+    private void logConversionFailure(String paramName,
+                                      String value, String type)
+    {
+<span class="nc" id="L1645">        getLogger().warn(&quot;Parameter (&quot; + paramName</span>
+                + &quot;) with value of (&quot;
+                + value + &quot;) could not be converted to a &quot; + type);
+<span class="nc" id="L1648">    }</span>
+
+    /**
+     * Convert a String value according to the url-case-folding property.
+     *
+     * @param value the String to convert
+     *
+     * @return a new String.
+     *
+     */
+    @Override
+    public String convertAndTrim(String value)
+    {
+<span class="fc" id="L1661">        return parserService.convertAndTrim(value);</span>
+    }
+
+    /**
+     * A convert method, which trims the string data and applies the
+     * conversion specified in the parameter given. It returns a new
+     * string so that it does not destroy the value data.
+     *
+     * @param value A String to be processed.
+     * @param fold The parameter folding to be applied
+     * (see {@link ParserService})
+     * @return A new String converted to the correct case and trimmed.
+     */
+    @Override
+    public String convertAndTrim(String value, URLCaseFolding fold)
+    {
+<span class="fc" id="L1677">        return parserService.convertAndTrim(value, fold);</span>
+    }
+
+    /**
+     * Gets the folding value from the ParserService configuration
+     *
+     * @return The current Folding Value
+     */
+    @Override
+    public URLCaseFolding getUrlFolding()
+    {
+<span class="fc" id="L1688">        return parserService.getUrlFolding();</span>
+    }
+
+	public boolean isValid() 
+	{
+<span class="pc bpc" id="L1693" title="1 of 2 branches missed.">    	if ( this.parameters.size() == 0 )</span>
+    	{
+<span class="fc" id="L1695">    		return true;</span>
+    	}
+<span class="nc" id="L1697">    	return false;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

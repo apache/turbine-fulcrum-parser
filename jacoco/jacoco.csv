@@ -1,0 +1,17 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Fulcrum Parser Service,org.apache.fulcrum.parser,BaseValueParser,195,1375,53,167,36,302,52,154,9,87
+Fulcrum Parser Service,org.apache.fulcrum.parser,CSVParser,45,0,0,0,14,0,4,0,4,0
+Fulcrum Parser Service,org.apache.fulcrum.parser,StringValueParser,117,0,18,0,35,0,12,0,3,0
+Fulcrum Parser Service,org.apache.fulcrum.parser,TSVParser,38,0,0,0,12,0,4,0,4,0
+Fulcrum Parser Service,org.apache.fulcrum.parser,DataStreamParser,229,0,24,0,58,0,21,0,9,0
+Fulcrum Parser Service,org.apache.fulcrum.parser,DefaultCookieParser,66,75,6,4,9,26,6,7,1,7
+Fulcrum Parser Service,org.apache.fulcrum.parser,ParserService,0,4,0,0,0,1,0,1,0,1
+Fulcrum Parser Service,org.apache.fulcrum.parser,DefaultParameterParser,208,264,22,20,39,69,23,14,6,10
+Fulcrum Parser Service,org.apache.fulcrum.parser,DefaultParserService,328,444,20,39,56,112,22,26,3,11
+Fulcrum Parser Service,org.apache.fulcrum.parser,ValueParser.URLCaseFolding,0,44,0,0,0,5,0,1,0,1
+Fulcrum Parser Service,org.apache.fulcrum.parser.pool,CookieParserFactory,5,17,0,0,1,5,1,4,1,4
+Fulcrum Parser Service,org.apache.fulcrum.parser.pool,BaseValueParserFactory,5,17,0,0,1,5,1,4,1,4
+Fulcrum Parser Service,org.apache.fulcrum.parser.pool,DefaultParameterParserFactory,5,17,0,0,1,5,1,4,1,4
+Fulcrum Parser Service,org.apache.fulcrum.parser.pool,BaseValueParserPool,4,5,0,0,2,2,1,1,1,1
+Fulcrum Parser Service,org.apache.fulcrum.parser.pool,DefaultParameterParserPool,4,5,0,0,2,2,1,1,1,1
+Fulcrum Parser Service,org.apache.fulcrum.parser.pool,CookieParserPool,4,5,0,0,2,2,1,1,1,1

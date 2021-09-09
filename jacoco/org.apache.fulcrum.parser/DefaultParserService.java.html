@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultParserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum Parser Service</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.parser</a> &gt; <span class="el_source">DefaultParserService.java</span></div><h1>DefaultParserService.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.parser;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+
+import org.apache.avalon.framework.configuration.Configurable;
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.ConfigurationException;
+import org.apache.avalon.framework.logger.AbstractLogEnabled;
+import org.apache.avalon.framework.logger.LogEnabled;
+import org.apache.avalon.framework.service.ServiceException;
+import org.apache.avalon.framework.service.ServiceManager;
+import org.apache.avalon.framework.service.Serviceable;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
+import org.apache.fulcrum.parser.pool.BaseValueParserFactory;
+import org.apache.fulcrum.parser.pool.BaseValueParserPool;
+import org.apache.fulcrum.parser.pool.CookieParserFactory;
+import org.apache.fulcrum.parser.pool.CookieParserPool;
+import org.apache.fulcrum.parser.pool.DefaultParameterParserFactory;
+import org.apache.fulcrum.parser.pool.DefaultParameterParserPool;
+import org.apache.fulcrum.pool.PoolException;
+import org.apache.fulcrum.pool.PoolService;
+
+
+/**
+ * The DefaultParserService provides the default implementation
+ * of a {@link ParserService}.
+ *
+ * @author &lt;a href=&quot;mailto:tv@apache.org&quot;&gt;Thomas Vandahl&lt;/a&gt;
+ * @version $Id: BaseValueParser.java 542062 2007-05-28 00:29:43Z seade $
+ */
+public class DefaultParserService
+    extends AbstractLogEnabled
+    implements ParserService,
+               Configurable, Serviceable
+{
+
+    /** The folding from the configuration */
+<span class="pc" id="L65">    private URLCaseFolding folding = URLCaseFolding.NONE;</span>
+
+    /** The automaticUpload setting from the configuration */
+<span class="pc" id="L68">    private boolean automaticUpload = AUTOMATIC_DEFAULT;</span>
+
+    /**
+     * The parameter encoding to use when parsing parameter strings
+     */
+<span class="pc" id="L73">    private String parameterEncoding = PARAMETER_ENCODING_DEFAULT;</span>
+    
+    /**
+     * reintroduced fulcrum, may be used in the case, that 
+     * commons pool2 is not configured exactly as needed properly as fast fall back.
+     */
+<span class="pc" id="L79">    private boolean useFulcrumPool = FULCRUM_POOL_DEFAULT;</span>
+    
+    
+    /**
+     * The Fulcrum pool service component to use (optional), by default it is deactivated and commons pool is used.
+     */
+<span class="pc" id="L85">    private PoolService fulcrumPoolService = null;</span>
+
+    /** 
+     * Use commons pool to manage value parsers 
+     */
+    private BaseValueParserPool valueParserPool;
+
+    /** 
+     * Use commons pool to manage parameter parsers 
+     */
+    private DefaultParameterParserPool parameterParserPool;
+
+    /** 
+     * Use commons pool to manage cookie parsers 
+     */
+    private CookieParserPool cookieParserPool;
+
+
+    public DefaultParserService() 
+<span class="fc" id="L104">    {</span>
+<span class="fc" id="L105">    }</span>
+    
+    public DefaultParserService(GenericObjectPoolConfig&lt;?&gt; config) 
+<span class="nc" id="L108">    {</span>
+	    // init the pool
+<span class="nc" id="L110">	    valueParserPool </span>
+    		= new BaseValueParserPool(new BaseValueParserFactory(), config);
+
+<span class="nc" id="L113">	    parameterParserPool </span>
+	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
+<span class="nc" id="L115">    }</span>
+
+    
+    /**
+     * Get the character encoding that will be used by this ValueParser.
+     */
+    @Override
+    public String getParameterEncoding()
+    {
+<span class="fc" id="L124">        return parameterEncoding;</span>
+    }
+    
+    /**
+     * Set the character encoding that will be used by this ValueParser.
+     */
+    public void setParameterEncoding(String encoding)
+    {
+<span class="nc" id="L132">        parameterEncoding = encoding;</span>
+<span class="nc" id="L133">    }</span>
+
+    /**
+     * Trims the string data and applies the conversion specified in
+     * the property given by URL_CASE_FOLDING.  It returns a new
+     * string so that it does not destroy the value data.
+     *
+     * @param value A String to be processed.
+     * @return A new String converted to the case as specified by URL_CASE_FOLDING and trimmed.
+     */
+    @Override
+    public String convert(String value)
+    {
+<span class="nc" id="L146">        return convertAndTrim(value);</span>
+    }
+
+    /**
+     * Convert a String value according to the url-case-folding property.
+     *
+     * @param value the String to convert
+     *
+     * @return a new String.
+     *
+     */
+    @Override
+    public String convertAndTrim(String value)
+    {
+<span class="fc" id="L160">        return convertAndTrim(value, getUrlFolding());</span>
+    }
+
+    /**
+     * A static version of the convert method, which
+     * trims the string data and applies the conversion specified in
+     * the property given by URL_CASE_FOLDING.  It returns a new
+     * string so that it does not destroy the value data.
+     *
+     * @param value A String to be processed.
+     * @return A new String converted to lowercase and trimmed.
+     */
+    @Override
+    public String convertAndTrim(String value, URLCaseFolding fold)
+    {
+<span class="fc bfc" id="L175" title="All 2 branches covered.">        if (value == null)</span>
+        {
+<span class="fc" id="L177">            return &quot;&quot;;</span>
+        }
+
+<span class="fc" id="L180">        String tmp = value.trim();</span>
+
+<span class="pc bpc" id="L182" title="1 of 4 branches missed.">        switch (fold)</span>
+        {
+            case NONE:
+            {
+<span class="fc" id="L186">                break;</span>
+            }
+
+            case LOWER:
+            {
+<span class="fc" id="L191">                tmp = tmp.toLowerCase();</span>
+<span class="fc" id="L192">                break;</span>
+            }
+
+            case UPPER:
+            {
+<span class="fc" id="L197">                tmp = tmp.toUpperCase();</span>
+<span class="fc" id="L198">                break;</span>
+            }
+
+            default:
+            {
+<span class="nc" id="L203">                getLogger().error(&quot;Passed &quot; + fold + &quot; as fold rule, which is illegal!&quot;);</span>
+                break;
+            }
+        }
+<span class="fc" id="L207">        return tmp;</span>
+    }
+
+    /**
+     * Gets the folding value from the configuration
+     *
+     * @return The current Folding Value
+     */
+    @Override
+    public URLCaseFolding getUrlFolding()
+    {
+<span class="fc" id="L218">        return folding;</span>
+    }
+
+    /**
+     * Gets the automaticUpload value from the configuration
+     *
+     * @return The current automaticUpload Value
+     */
+    @Override
+    public boolean getAutomaticUpload()
+    {
+<span class="fc" id="L229">        return automaticUpload;</span>
+    }
+
+    /**
+     * Parse the given request for uploaded files
+     *
+     * @return A list of {@link javax.servlet.http.Part}s
+     *
+     * @throws ServiceException if parsing fails
+     */
+    @Override
+    public List&lt;Part&gt; parseUpload(HttpServletRequest request) throws ServiceException
+    {
+        try
+        {
+<span class="fc" id="L244">            return new ArrayList&lt;Part&gt;(request.getParts());</span>
+        }
+<span class="nc" id="L246">        catch (IOException | ServletException e)</span>
+        {
+<span class="nc" id="L248">            throw new ServiceException(ParserService.ROLE, &quot;Could not parse upload request&quot;, e);</span>
+        }
+    }
+
+    /**
+     * Get a {@link ValueParser} instance from the service. Use the
+     * given Class to create the object.
+     *
+     * @return An object that implements ValueParser
+     *
+     * @throws InstantiationException if the instance could not be created
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+	@Override
+    public &lt;P extends ValueParser&gt; P getParser(Class&lt;P&gt; ppClass) throws InstantiationException
+    {
+<span class="fc" id="L264">        P vp = null;</span>
+
+        try
+        {
+<span class="fc bfc" id="L268" title="All 2 branches covered.">            if (useFulcrumPool) {</span>
+                try
+                {
+<span class="fc" id="L271">                    P parserInstance = (P) fulcrumPoolService.getInstance(ppClass);</span>
+<span class="fc" id="L272">                    vp = parserInstance;</span>
+                }
+<span class="nc" id="L274">                catch (PoolException pe)</span>
+                {
+<span class="nc" id="L276">                    throw new InstantiationException(&quot;Parser class '&quot; + ppClass + &quot;' is illegal. &quot; + pe.getMessage());</span>
+<span class="fc" id="L277">                }</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">            } else if ( ppClass.equals(BaseValueParser.class) )</span>
+            {
+<span class="fc" id="L280">            	BaseValueParser parserInstance = null;</span>
+				try {
+<span class="fc" id="L282">				    parserInstance = valueParserPool.borrowObject();</span>
+<span class="fc" id="L283">					vp = (P) parserInstance;</span>
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">					if (vp == null) {</span>
+<span class="nc" id="L285">                        throw new InstantiationException(&quot;Could not borrow object from pool: &quot; + valueParserPool);</span>
+                    }
+<span class="nc" id="L287">				} catch (Exception e) {</span>
+                    try {
+<span class="nc" id="L289">                        valueParserPool.invalidateObject(parserInstance);</span>
+<span class="nc" id="L290">                        parserInstance = null;</span>
+<span class="nc" id="L291">                    } catch (Exception e1) {</span>
+<span class="nc" id="L292">                        throw new InstantiationException(&quot;Could not invalidate object &quot; + e1.getMessage() + &quot; after exception: &quot; + e.getMessage());</span>
+<span class="nc" id="L293">                    }</span>
+<span class="fc" id="L294">				}</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">            } else if ( ppClass.equals(DefaultParameterParser.class) )</span>
+            {
+<span class="fc" id="L297">                DefaultParameterParser parserInstance = null;</span>
+                try {
+<span class="fc" id="L299">                    parserInstance = parameterParserPool.borrowObject();</span>
+<span class="fc" id="L300">                	vp = (P) parserInstance;</span>
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">                	if (vp == null) {</span>
+<span class="nc" id="L302">                        throw new InstantiationException(&quot;Could not borrow object from pool: &quot; + parameterParserPool);</span>
+                    }
+<span class="nc" id="L304">                } catch (Exception e) {</span>
+                    try {
+<span class="nc" id="L306">                        parameterParserPool.invalidateObject(parserInstance);</span>
+<span class="nc" id="L307">                        parserInstance = null;</span>
+<span class="nc" id="L308">                    } catch (Exception e1) {</span>
+<span class="nc" id="L309">                        throw new InstantiationException(&quot;Could not invalidate object &quot; + e1.getMessage() + &quot; after exception: &quot; + e.getMessage());</span>
+<span class="nc" id="L310">                    }</span>
+<span class="fc" id="L311">                }</span>
+<span class="pc bpc" id="L312" title="1 of 2 branches missed.">            } else if ( ppClass.equals(DefaultCookieParser.class) )</span>
+            {
+<span class="fc" id="L314">                DefaultCookieParser parserInstance = null;</span>
+                try {
+<span class="fc" id="L316">                    parserInstance = cookieParserPool.borrowObject();</span>
+<span class="fc" id="L317">                	vp = (P) parserInstance;</span>
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">                    if (vp == null) {</span>
+<span class="nc" id="L319">                          throw new InstantiationException(&quot;Could not borrow object from pool: &quot; + cookieParserPool);</span>
+                    }
+<span class="nc" id="L321">                } catch (Exception e) {</span>
+                    try {
+<span class="nc" id="L323">                        cookieParserPool.invalidateObject(parserInstance);</span>
+<span class="nc" id="L324">                        parserInstance = null;</span>
+<span class="nc" id="L325">                    } catch (Exception e1) {</span>
+<span class="nc" id="L326">                        throw new InstantiationException(&quot;Could not invalidate object &quot; + e1.getMessage() + &quot; after exception: &quot; + e.getMessage());</span>
+<span class="nc" id="L327">                    }</span>
+<span class="fc" id="L328">                }</span>
+            }
+            
+<span class="pc bpc" id="L331" title="2 of 4 branches missed.">            if (vp != null &amp;&amp; vp instanceof ParserServiceSupport ) {</span>
+<span class="fc" id="L332">                ((ParserServiceSupport)vp).setParserService(this);</span>
+            } else {
+<span class="nc" id="L334">                throw new InstantiationException(&quot;Could not set parser&quot;);</span>
+            }
+<span class="pc bpc" id="L336" title="1 of 2 branches missed.">            if (vp instanceof LogEnabled) </span>
+            {
+<span class="fc" id="L338">                ((LogEnabled)vp).enableLogging(getLogger().getChildLogger(ppClass.getSimpleName()));</span>
+            }
+        }
+<span class="nc" id="L341">        catch (ClassCastException x)</span>
+        {
+<span class="nc" id="L343">            throw new InstantiationException(&quot;Parser class '&quot; + ppClass + &quot;' is illegal. &quot; + x.getMessage());</span>
+<span class="fc" id="L344">        }</span>
+
+<span class="fc" id="L346">        return vp;</span>
+    }
+
+    /**
+     * Clears the parse and puts it back into
+     * the pool service. This allows for pooling 
+     * and recycling
+     * 
+     * As we are not yet using org.apache.fulcrum.pool.Recyclable, we call insteda {@link ValueParser#dispose()}.
+     *
+     * @param parser The value parser to use
+     */
+    @Override
+    public void putParser(ValueParser parser)
+    {
+<span class="fc" id="L361">        parser.clear();</span>
+<span class="fc" id="L362">        parser.dispose(); </span>
+    
+<span class="fc bfc" id="L364" title="All 2 branches covered.">        if (useFulcrumPool) {</span>
+            
+<span class="fc" id="L366">            fulcrumPoolService.putInstance(parser);</span>
+            
+<span class="fc bfc" id="L368" title="All 2 branches covered.">        } else if( parser.getClass().equals(BaseValueParser.class) )</span>
+        {
+<span class="fc" id="L370">            valueParserPool.returnObject( (BaseValueParser) parser );</span>
+        
+<span class="pc bpc" id="L372" title="1 of 4 branches missed.">        } else if ( parser.getClass().equals(DefaultParameterParser.class) ||</span>
+                parser instanceof DefaultParameterParser)
+        {
+<span class="fc" id="L375">            parameterParserPool.returnObject( (DefaultParameterParser) parser );</span>
+        	
+<span class="pc bpc" id="L377" title="3 of 4 branches missed.">        } else if ( parser.getClass().equals(DefaultCookieParser.class) ||</span>
+                parser instanceof DefaultCookieParser)
+        {
+<span class="fc" id="L380">            cookieParserPool.returnObject( (DefaultCookieParser) parser );</span>
+        	
+        } else {
+            // log
+<span class="nc" id="L384">            getLogger().warn(parser.getClass() + &quot; could not be put back into any pool exhausting some pool&quot;);</span>
+            // log even borrowed count of each pool?: cookieParserPool.getBorrowedCount())
+            }
+<span class="fc" id="L387">    }</span>
+
+    /**
+     * Avalon component lifecycle method
+     * 
+     * @param conf the configuration
+     * @throws ConfigurationException Generic exception
+     */
+    @Override
+    public void configure(Configuration conf) throws ConfigurationException
+    {
+<span class="fc" id="L398">        String foldString = conf.getChild(URL_CASE_FOLDING_KEY).getValue(URLCaseFolding.NONE.name()).toLowerCase();</span>
+
+<span class="fc" id="L400">        folding = URLCaseFolding.NONE;</span>
+
+<span class="fc" id="L402">        getLogger().debug(&quot;Setting folding from &quot; + foldString);</span>
+
+<span class="pc bpc" id="L404" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(foldString))</span>
+        {
+            try
+            {
+<span class="fc" id="L408">                folding = URLCaseFolding.valueOf(foldString.toUpperCase());</span>
+            }
+<span class="nc" id="L410">            catch (IllegalArgumentException e)</span>
+            {
+<span class="nc" id="L412">                getLogger().error(&quot;Got &quot; + foldString + &quot; from &quot; + URL_CASE_FOLDING_KEY + &quot; property, which is illegal!&quot;);</span>
+<span class="nc" id="L413">                throw new ConfigurationException(&quot;Value &quot; + foldString + &quot; is illegal!&quot;, e);</span>
+<span class="fc" id="L414">            }</span>
+        }
+
+<span class="fc" id="L417">        parameterEncoding = conf.getChild(PARAMETER_ENCODING_KEY)</span>
+<span class="fc" id="L418">                            .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();</span>
+
+<span class="fc" id="L420">        automaticUpload = conf.getChild(AUTOMATIC_KEY).getValueAsBoolean(AUTOMATIC_DEFAULT);</span>
+        
+<span class="fc" id="L422">        useFulcrumPool = conf.getChild(FULCRUM_POOL_KEY).getValueAsBoolean(FULCRUM_POOL_DEFAULT);</span>
+        
+<span class="fc bfc" id="L424" title="All 2 branches covered.">        if (useFulcrumPool) {</span>
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">            if (fulcrumPoolService == null) </span>
+            {
+                    // only for fulcrum  pool, need to call internal service, if role pool service is set
+<span class="nc" id="L428">                    throw new ConfigurationException(&quot;Fulcrum Pool is activated&quot;, new ServiceException(ParserService.ROLE,</span>
+                            &quot;Fulcrum enabled Pool Service requires &quot; +
+                            PoolService.ROLE + &quot; to be available&quot;));
+            }
+<span class="fc" id="L432">            getLogger().info(&quot;Using Fulcrum Pool Service: &quot;+ fulcrumPoolService);</span>
+        } else {
+            // reset not used fulcrum pool
+<span class="fc" id="L435">            fulcrumPoolService = null;</span>
+            
+            // Define the default configuration
+<span class="fc" id="L438">            GenericObjectPoolConfig config = new GenericObjectPoolConfig();</span>
+<span class="fc" id="L439">            config.setMaxIdle(DEFAULT_MAX_IDLE);</span>
+<span class="fc" id="L440">            config.setMaxTotal(DEFAULT_POOL_CAPACITY);</span>
+
+            // init the pool
+<span class="fc" id="L443">            valueParserPool </span>
+                = new BaseValueParserPool(new BaseValueParserFactory(), config);
+
+            // init the pool
+<span class="fc" id="L447">            parameterParserPool </span>
+                = new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
+            
+            // init the pool
+<span class="fc" id="L451">            cookieParserPool </span>
+                = new CookieParserPool(new CookieParserFactory(), config);
+            
+<span class="fc" id="L454">            getLogger().info(&quot;Init Commons2 Pool Services..&quot; );</span>
+<span class="fc" id="L455">            getLogger().info(valueParserPool.getClass().getName());</span>
+<span class="fc" id="L456">            getLogger().info(parameterParserPool.getClass().getName());</span>
+<span class="fc" id="L457">            getLogger().info(cookieParserPool.getClass().getName());</span>
+        }
+        
+<span class="fc" id="L460">        Configuration[] poolChildren = conf.getChild(POOL_KEY).getChildren();</span>
+<span class="fc bfc" id="L461" title="All 2 branches covered.">        if (poolChildren.length &gt; 0) {</span>
+<span class="fc" id="L462">            GenericObjectPoolConfig genObjPoolConfig = new GenericObjectPoolConfig();</span>
+<span class="fc" id="L463">            genObjPoolConfig.setMaxIdle(DEFAULT_MAX_IDLE);</span>
+<span class="fc" id="L464">            genObjPoolConfig.setMaxTotal(DEFAULT_POOL_CAPACITY);</span>
+<span class="fc bfc" id="L465" title="All 2 branches covered.">            for (Configuration poolConf : poolChildren) {</span>
+                // use common pool2 configuration names
+<span class="pc bpc" id="L467" title="6 of 9 branches missed.">                switch (poolConf.getName()) {</span>
+                case &quot;maxTotal&quot;:
+<span class="fc" id="L469">                    int defaultCapacity = poolConf.getValueAsInteger();</span>
+<span class="fc" id="L470">                    genObjPoolConfig.setMaxTotal(defaultCapacity);</span>
+<span class="fc" id="L471">                    break;</span>
+                case &quot;maxWaitMillis&quot;:
+<span class="fc" id="L473">                    int maxWaitMillis = poolConf.getValueAsInteger();</span>
+<span class="fc" id="L474">                    genObjPoolConfig.setMaxWaitMillis(maxWaitMillis);</span>
+<span class="fc" id="L475">                    break;</span>
+                case &quot;blockWhenExhausted&quot;:
+<span class="fc" id="L477">                    boolean blockWhenExhausted = poolConf.getValueAsBoolean();</span>
+<span class="fc" id="L478">                    genObjPoolConfig.setBlockWhenExhausted(blockWhenExhausted);</span>
+<span class="fc" id="L479">                    break;</span>
+                case &quot;maxIdle&quot;:
+<span class="nc" id="L481">                    int maxIdle = poolConf.getValueAsInteger();</span>
+<span class="nc" id="L482">                    genObjPoolConfig.setMaxIdle(maxIdle);</span>
+<span class="nc" id="L483">                    break;</span>
+                case &quot;minIdle&quot;:
+<span class="nc" id="L485">                    int minIdle = poolConf.getValueAsInteger();</span>
+<span class="nc" id="L486">                    genObjPoolConfig.setMinIdle(minIdle);</span>
+<span class="nc" id="L487">                    break;</span>
+                case &quot;testOnReturn&quot;:
+<span class="nc" id="L489">                    boolean testOnReturn = poolConf.getValueAsBoolean();</span>
+<span class="nc" id="L490">                    genObjPoolConfig.setTestOnReturn(testOnReturn);</span>
+<span class="nc" id="L491">                    break;</span>
+                case &quot;testOnBorrow&quot;:
+<span class="nc" id="L493">                    boolean testOnBorrow = poolConf.getValueAsBoolean();</span>
+<span class="nc" id="L494">                    genObjPoolConfig.setTestOnBorrow(testOnBorrow);</span>
+<span class="nc" id="L495">                    break;</span>
+                case &quot;testOnCreate&quot;:
+<span class="nc" id="L497">                    boolean testOnCreate = poolConf.getValueAsBoolean();</span>
+<span class="nc" id="L498">                    genObjPoolConfig.setTestOnCreate(testOnCreate);</span>
+<span class="nc" id="L499">                    break;</span>
+                default:
+                    
+                    break;
+                }  
+            }    
+            // reinit the pools
+<span class="fc" id="L506">            valueParserPool.setConfig(genObjPoolConfig);</span>
+<span class="fc" id="L507">            parameterParserPool.setConfig(genObjPoolConfig);</span>
+<span class="fc" id="L508">            cookieParserPool.setConfig(genObjPoolConfig);</span>
+            
+<span class="fc" id="L510">            getLogger().debug(valueParserPool.toString());</span>
+<span class="fc" id="L511">            getLogger().debug(parameterParserPool.toString());</span>
+<span class="fc" id="L512">            getLogger().debug(cookieParserPool.toString());</span>
+        }
+                
+<span class="fc" id="L515">    }</span>
+
+    // ---------------- Avalon Lifecycle Methods ---------------------
+    /**
+     * Avalon component lifecycle method
+     * 
+     * @param manager The service manager instance
+     * @throws ServiceException generic exception
+     * 
+     */
+    @Override
+    public void service(ServiceManager manager) throws ServiceException
+    {
+        // only for fulcrum  pool, need to call internal service, if role pool service is set
+<span class="fc bfc" id="L529" title="All 2 branches covered.">        if (manager.hasService(PoolService.ROLE))</span>
+        {
+<span class="fc" id="L531">            fulcrumPoolService = (PoolService)manager.lookup(PoolService.ROLE);</span>
+        } 
+        // no check here, until configuration is read
+<span class="fc" id="L534">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

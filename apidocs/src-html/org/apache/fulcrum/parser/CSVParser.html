@@ -1,0 +1,190 @@
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<main role="main">
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span><a id="line.1">package org.apache.fulcrum.parser;</a>
+<span class="sourceLineNo">002</span><a id="line.2"></a>
+<span class="sourceLineNo">003</span><a id="line.3"></a>
+<span class="sourceLineNo">004</span><a id="line.4">/*</a>
+<span class="sourceLineNo">005</span><a id="line.5"> * Licensed to the Apache Software Foundation (ASF) under one</a>
+<span class="sourceLineNo">006</span><a id="line.6"> * or more contributor license agreements.  See the NOTICE file</a>
+<span class="sourceLineNo">007</span><a id="line.7"> * distributed with this work for additional information</a>
+<span class="sourceLineNo">008</span><a id="line.8"> * regarding copyright ownership.  The ASF licenses this file</a>
+<span class="sourceLineNo">009</span><a id="line.9"> * to you under the Apache License, Version 2.0 (the</a>
+<span class="sourceLineNo">010</span><a id="line.10"> * "License"); you may not use this file except in compliance</a>
+<span class="sourceLineNo">011</span><a id="line.11"> * with the License.  You may obtain a copy of the License at</a>
+<span class="sourceLineNo">012</span><a id="line.12"> *</a>
+<span class="sourceLineNo">013</span><a id="line.13"> *   http://www.apache.org/licenses/LICENSE-2.0</a>
+<span class="sourceLineNo">014</span><a id="line.14"> *</a>
+<span class="sourceLineNo">015</span><a id="line.15"> * Unless required by applicable law or agreed to in writing,</a>
+<span class="sourceLineNo">016</span><a id="line.16"> * software distributed under the License is distributed on an</a>
+<span class="sourceLineNo">017</span><a id="line.17"> * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</a>
+<span class="sourceLineNo">018</span><a id="line.18"> * KIND, either express or implied.  See the License for the</a>
+<span class="sourceLineNo">019</span><a id="line.19"> * specific language governing permissions and limitations</a>
+<span class="sourceLineNo">020</span><a id="line.20"> * under the License.</a>
+<span class="sourceLineNo">021</span><a id="line.21"> */</a>
+<span class="sourceLineNo">022</span><a id="line.22"></a>
+<span class="sourceLineNo">023</span><a id="line.23"></a>
+<span class="sourceLineNo">024</span><a id="line.24">import java.io.Reader;</a>
+<span class="sourceLineNo">025</span><a id="line.25">import java.io.StreamTokenizer;</a>
+<span class="sourceLineNo">026</span><a id="line.26">import java.util.List;</a>
+<span class="sourceLineNo">027</span><a id="line.27"></a>
+<span class="sourceLineNo">028</span><a id="line.28">/**</a>
+<span class="sourceLineNo">029</span><a id="line.29"> * CSVParser is used to parse a stream with comma-separated values and</a>
+<span class="sourceLineNo">030</span><a id="line.30"> * generate ParameterParser objects which can be used to</a>
+<span class="sourceLineNo">031</span><a id="line.31"> * extract the values in the desired type.</a>
+<span class="sourceLineNo">032</span><a id="line.32"> *</a>
+<span class="sourceLineNo">033</span><a id="line.33"> * &lt;p&gt;The class extends the abstract class DataStreamParser and implements</a>
+<span class="sourceLineNo">034</span><a id="line.34"> * initTokenizer with suitable values for CSV files to provide this</a>
+<span class="sourceLineNo">035</span><a id="line.35"> * functionality.</a>
+<span class="sourceLineNo">036</span><a id="line.36"> *</a>
+<span class="sourceLineNo">037</span><a id="line.37"> * &lt;p&gt;The class (indirectly through DataStreamParser) implements the</a>
+<span class="sourceLineNo">038</span><a id="line.38"> * java.util.Iterator interface for convenience.</a>
+<span class="sourceLineNo">039</span><a id="line.39"> * This allows simple use in a Velocity template for example:</a>
+<span class="sourceLineNo">040</span><a id="line.40"> *</a>
+<span class="sourceLineNo">041</span><a id="line.41"> * &lt;pre&gt;</a>
+<span class="sourceLineNo">042</span><a id="line.42"> * #foreach ($row in $csvfile)</a>
+<span class="sourceLineNo">043</span><a id="line.43"> *   Name: $row.Name</a>
+<span class="sourceLineNo">044</span><a id="line.44"> *   Description: $row.Description</a>
+<span class="sourceLineNo">045</span><a id="line.45"> * #end</a>
+<span class="sourceLineNo">046</span><a id="line.46"> * &lt;/pre&gt;</a>
+<span class="sourceLineNo">047</span><a id="line.47"> *</a>
+<span class="sourceLineNo">048</span><a id="line.48"> * @author &lt;a href="mailto:sean@informage.net"&gt;Sean Legassick&lt;/a&gt;</a>
+<span class="sourceLineNo">049</span><a id="line.49"> * @version $Id$</a>
+<span class="sourceLineNo">050</span><a id="line.50"> */</a>
+<span class="sourceLineNo">051</span><a id="line.51">public class CSVParser extends DataStreamParser</a>
+<span class="sourceLineNo">052</span><a id="line.52">{</a>
+<span class="sourceLineNo">053</span><a id="line.53">    /**</a>
+<span class="sourceLineNo">054</span><a id="line.54">     * Create a new CSVParser instance. Requires a Reader to read the</a>
+<span class="sourceLineNo">055</span><a id="line.55">     * comma-separated values from. The column headers must be set</a>
+<span class="sourceLineNo">056</span><a id="line.56">     * independently either explicitly, or by reading the first line</a>
+<span class="sourceLineNo">057</span><a id="line.57">     * of the CSV values.</a>
+<span class="sourceLineNo">058</span><a id="line.58">     *</a>
+<span class="sourceLineNo">059</span><a id="line.59">     * @param in the input reader.</a>
+<span class="sourceLineNo">060</span><a id="line.60">     */</a>
+<span class="sourceLineNo">061</span><a id="line.61">    public CSVParser(Reader in)</a>
+<span class="sourceLineNo">062</span><a id="line.62">    {</a>
+<span class="sourceLineNo">063</span><a id="line.63">        super(in, null, null);</a>
+<span class="sourceLineNo">064</span><a id="line.64">    }</a>
+<span class="sourceLineNo">065</span><a id="line.65"></a>
+<span class="sourceLineNo">066</span><a id="line.66">    /**</a>
+<span class="sourceLineNo">067</span><a id="line.67">     * Create a new CSVParser instance. Requires a Reader to read the</a>
+<span class="sourceLineNo">068</span><a id="line.68">     * comma-separated values from, and a list of column names.</a>
+<span class="sourceLineNo">069</span><a id="line.69">     *</a>
+<span class="sourceLineNo">070</span><a id="line.70">     * @param in the input reader.</a>
+<span class="sourceLineNo">071</span><a id="line.71">     * @param columnNames a list of column names.</a>
+<span class="sourceLineNo">072</span><a id="line.72">     */</a>
+<span class="sourceLineNo">073</span><a id="line.73">    public CSVParser(Reader in, List&lt;String&gt; columnNames)</a>
+<span class="sourceLineNo">074</span><a id="line.74">    {</a>
+<span class="sourceLineNo">075</span><a id="line.75">        super(in, columnNames, null);</a>
+<span class="sourceLineNo">076</span><a id="line.76">    }</a>
+<span class="sourceLineNo">077</span><a id="line.77"></a>
+<span class="sourceLineNo">078</span><a id="line.78">    /**</a>
+<span class="sourceLineNo">079</span><a id="line.79">     * Create a new CSVParser instance. Requires a Reader to read the</a>
+<span class="sourceLineNo">080</span><a id="line.80">     * comma-separated values from, a list of column names and a</a>
+<span class="sourceLineNo">081</span><a id="line.81">     * character encoding.</a>
+<span class="sourceLineNo">082</span><a id="line.82">     *</a>
+<span class="sourceLineNo">083</span><a id="line.83">     * @param in the input reader.</a>
+<span class="sourceLineNo">084</span><a id="line.84">     * @param columnNames a list of column names.</a>
+<span class="sourceLineNo">085</span><a id="line.85">     * @param characterEncoding the character encoding of the input.</a>
+<span class="sourceLineNo">086</span><a id="line.86">     */</a>
+<span class="sourceLineNo">087</span><a id="line.87">    public CSVParser(Reader in, List&lt;String&gt; columnNames, String characterEncoding)</a>
+<span class="sourceLineNo">088</span><a id="line.88">    {</a>
+<span class="sourceLineNo">089</span><a id="line.89">        super(in, columnNames, characterEncoding);</a>
+<span class="sourceLineNo">090</span><a id="line.90">    }</a>
+<span class="sourceLineNo">091</span><a id="line.91"></a>
+<span class="sourceLineNo">092</span><a id="line.92">    /**</a>
+<span class="sourceLineNo">093</span><a id="line.93">     * Initialize the StreamTokenizer instance used to read the lines</a>
+<span class="sourceLineNo">094</span><a id="line.94">     * from the input reader.</a>
+<span class="sourceLineNo">095</span><a id="line.95">     */</a>
+<span class="sourceLineNo">096</span><a id="line.96">    protected void initTokenizer(StreamTokenizer tokenizer)</a>
+<span class="sourceLineNo">097</span><a id="line.97">    {</a>
+<span class="sourceLineNo">098</span><a id="line.98">        // set all numeric characters as ordinary characters</a>
+<span class="sourceLineNo">099</span><a id="line.99">        // (switches off number parsing)</a>
+<span class="sourceLineNo">100</span><a id="line.100">        tokenizer.ordinaryChars('0', '9');</a>
+<span class="sourceLineNo">101</span><a id="line.101">        tokenizer.ordinaryChars('-', '-');</a>
+<span class="sourceLineNo">102</span><a id="line.102">        tokenizer.ordinaryChars('.', '.');</a>
+<span class="sourceLineNo">103</span><a id="line.103"></a>
+<span class="sourceLineNo">104</span><a id="line.104">        // set all printable characters to be treated as word chars</a>
+<span class="sourceLineNo">105</span><a id="line.105">        tokenizer.wordChars(' ', Integer.MAX_VALUE);</a>
+<span class="sourceLineNo">106</span><a id="line.106"></a>
+<span class="sourceLineNo">107</span><a id="line.107">        // now set comma as the whitespace character</a>
+<span class="sourceLineNo">108</span><a id="line.108">        tokenizer.whitespaceChars(',', ',');</a>
+<span class="sourceLineNo">109</span><a id="line.109"></a>
+<span class="sourceLineNo">110</span><a id="line.110">        // and  set the quote mark as the quoting character</a>
+<span class="sourceLineNo">111</span><a id="line.111">        tokenizer.quoteChar('"');</a>
+<span class="sourceLineNo">112</span><a id="line.112"></a>
+<span class="sourceLineNo">113</span><a id="line.113">        // and finally say that end of line is significant</a>
+<span class="sourceLineNo">114</span><a id="line.114">        tokenizer.eolIsSignificant(true);</a>
+<span class="sourceLineNo">115</span><a id="line.115">    }</a>
+<span class="sourceLineNo">116</span><a id="line.116">}</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</main>
+</body>
+</html>

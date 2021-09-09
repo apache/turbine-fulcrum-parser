@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CSVParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum Parser Service</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.parser</a> &gt; <span class="el_source">CSVParser.java</span></div><h1>CSVParser.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.parser;
+
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.util.List;
+
+/**
+ * CSVParser is used to parse a stream with comma-separated values and
+ * generate ParameterParser objects which can be used to
+ * extract the values in the desired type.
+ *
+ * &lt;p&gt;The class extends the abstract class DataStreamParser and implements
+ * initTokenizer with suitable values for CSV files to provide this
+ * functionality.
+ *
+ * &lt;p&gt;The class (indirectly through DataStreamParser) implements the
+ * java.util.Iterator interface for convenience.
+ * This allows simple use in a Velocity template for example:
+ *
+ * &lt;pre&gt;
+ * #foreach ($row in $csvfile)
+ *   Name: $row.Name
+ *   Description: $row.Description
+ * #end
+ * &lt;/pre&gt;
+ *
+ * @author &lt;a href=&quot;mailto:sean@informage.net&quot;&gt;Sean Legassick&lt;/a&gt;
+ * @version $Id$
+ */
+public class CSVParser extends DataStreamParser
+{
+    /**
+     * Create a new CSVParser instance. Requires a Reader to read the
+     * comma-separated values from. The column headers must be set
+     * independently either explicitly, or by reading the first line
+     * of the CSV values.
+     *
+     * @param in the input reader.
+     */
+    public CSVParser(Reader in)
+    {
+<span class="nc" id="L63">        super(in, null, null);</span>
+<span class="nc" id="L64">    }</span>
+
+    /**
+     * Create a new CSVParser instance. Requires a Reader to read the
+     * comma-separated values from, and a list of column names.
+     *
+     * @param in the input reader.
+     * @param columnNames a list of column names.
+     */
+    public CSVParser(Reader in, List&lt;String&gt; columnNames)
+    {
+<span class="nc" id="L75">        super(in, columnNames, null);</span>
+<span class="nc" id="L76">    }</span>
+
+    /**
+     * Create a new CSVParser instance. Requires a Reader to read the
+     * comma-separated values from, a list of column names and a
+     * character encoding.
+     *
+     * @param in the input reader.
+     * @param columnNames a list of column names.
+     * @param characterEncoding the character encoding of the input.
+     */
+    public CSVParser(Reader in, List&lt;String&gt; columnNames, String characterEncoding)
+    {
+<span class="nc" id="L89">        super(in, columnNames, characterEncoding);</span>
+<span class="nc" id="L90">    }</span>
+
+    /**
+     * Initialize the StreamTokenizer instance used to read the lines
+     * from the input reader.
+     */
+    protected void initTokenizer(StreamTokenizer tokenizer)
+    {
+        // set all numeric characters as ordinary characters
+        // (switches off number parsing)
+<span class="nc" id="L100">        tokenizer.ordinaryChars('0', '9');</span>
+<span class="nc" id="L101">        tokenizer.ordinaryChars('-', '-');</span>
+<span class="nc" id="L102">        tokenizer.ordinaryChars('.', '.');</span>
+
+        // set all printable characters to be treated as word chars
+<span class="nc" id="L105">        tokenizer.wordChars(' ', Integer.MAX_VALUE);</span>
+
+        // now set comma as the whitespace character
+<span class="nc" id="L108">        tokenizer.whitespaceChars(',', ',');</span>
+
+        // and  set the quote mark as the quoting character
+<span class="nc" id="L111">        tokenizer.quoteChar('&quot;');</span>
+
+        // and finally say that end of line is significant
+<span class="nc" id="L114">        tokenizer.eolIsSignificant(true);</span>
+<span class="nc" id="L115">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

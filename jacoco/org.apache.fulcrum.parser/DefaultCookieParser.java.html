@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultCookieParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum Parser Service</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.parser</a> &gt; <span class="el_source">DefaultCookieParser.java</span></div><h1>DefaultCookieParser.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.parser;
+
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * CookieParser is used to get and set values of Cookies on the Client
+ * Browser.  You can use CookieParser to convert Cookie values to
+ * various types or to set Bean values with setParameters(). See the
+ * Servlet Spec for more information on Cookies.
+ * &lt;p&gt;
+ * Use set() or unset() to Create or Destroy Cookies.
+ * &lt;p&gt;
+ * NOTE: The name= portion of a name=value pair may be converted
+ * to lowercase or uppercase when the object is initialized and when
+ * new data is added.  This behaviour is determined by the url.case.folding
+ * property in TurbineResources.properties.  Adding a name/value pair may
+ * overwrite existing name=value pairs if the names match:
+ *
+ * &lt;pre&gt;
+ * CookieParser cp = data.getCookies();
+ * cp.add(&quot;ERROR&quot;,1);
+ * cp.add(&quot;eRrOr&quot;,2);
+ * int result = cp.getInt(&quot;ERROR&quot;);
+ * &lt;/pre&gt;
+ *
+ * In the above example, result is 2.
+ *
+ * @author &lt;a href=&quot;mailto:ilkka.priha@simsoft.fi&quot;&gt;Ilkka Priha&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:leon@opticode.co.za&quot;&gt;Leon Messerschmidt&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:tv@apache.org&quot;&gt;Thomas Vandahl&lt;/a&gt;
+ * @version $Id$
+ */
+public class DefaultCookieParser
+    extends BaseValueParser
+    implements CookieParser
+
+{
+    /**
+     * The servlet request objects to parse.
+     */
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+
+    /**
+     * Constructs a new CookieParser.
+     */
+    public DefaultCookieParser()
+    {
+<span class="fc" id="L72">        super();</span>
+<span class="fc" id="L73">    }</span>
+
+    /**
+     * Disposes the parser.
+     */
+    public void dispose()
+    {
+<span class="fc" id="L80">        this.request = null;</span>
+<span class="fc" id="L81">        this.response = null;</span>
+<span class="fc" id="L82">        super.dispose();</span>
+<span class="fc" id="L83">    }</span>
+
+    /**
+     * Gets the servlet request.
+     *
+     * @return the servlet request object or null.
+     */
+    public HttpServletRequest getRequest()
+    {
+<span class="nc" id="L92">        return this.request;</span>
+    }
+
+    /**
+     * Sets the servlet request and response to be parsed.
+     * All previous cookies will be cleared.
+     *
+     * @param request the servlet request object.
+     * @param response the servlet response object
+     */
+    public void setData (HttpServletRequest request,
+                         HttpServletResponse response)
+    {
+<span class="fc" id="L105">        clear();</span>
+
+<span class="fc" id="L107">        String enc = request.getCharacterEncoding();</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        setCharacterEncoding(enc != null ? enc : &quot;US-ASCII&quot;);</span>
+
+<span class="fc" id="L110">        Cookie[] cookies = request.getCookies();</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        if ( cookies != null )</span>
+        {
+<span class="nc" id="L113">	        getLogger().debug (&quot;Number of Cookies &quot;+cookies.length);</span>
+	
+<span class="nc bnc" id="L115" title="All 2 branches missed.">	        for (Cookie cookie : cookies)</span>
+	        {
+<span class="nc" id="L117">	            String name = convert(cookie.getName());</span>
+<span class="nc" id="L118">	            String value = cookie.getValue();</span>
+<span class="nc" id="L119">	            getLogger().debug (&quot;Adding &quot; + name + &quot;=&quot; + value);</span>
+<span class="nc" id="L120">	            add(name, value);</span>
+	        }
+        }
+
+<span class="fc" id="L124">        this.request = request;</span>
+<span class="fc" id="L125">        this.response = response;</span>
+<span class="fc" id="L126">    }</span>
+
+    /**
+     * Set a cookie that will be stored on the client for
+     * the duration of the session.
+     */
+    public void set (String name, String value)
+    {
+<span class="fc" id="L134">        set(name, value, AGE_SESSION);</span>
+<span class="fc" id="L135">    }</span>
+
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.CookieParser#set(java.lang.String, java.lang.String, int)
+	 *
+     * Set a persistent cookie on the client that will expire
+     * after a maximum age (given in seconds).
+     */
+    public void set(String name, String value, int secondsAge)
+    {
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (response == null)</span>
+        {
+<span class="nc" id="L147">            throw new IllegalStateException(&quot;Servlet response not available&quot;);</span>
+        }
+
+<span class="fc" id="L150">        Cookie cookie = new Cookie(name, value);</span>
+<span class="fc" id="L151">        cookie.setMaxAge(secondsAge);</span>
+<span class="fc" id="L152">        cookie.setPath(request.getServletPath());</span>
+<span class="fc" id="L153">        response.addCookie(cookie);</span>
+<span class="fc" id="L154">    }</span>
+    
+
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.CookieParser#unset(java.lang.String)
+     * 
+     * Remove a previously set cookie from the client machine.
+     * 
+     */
+    public void unset(String name)
+    {
+<span class="fc" id="L165">        set(name, &quot; &quot;, AGE_DELETE);</span>
+<span class="fc" id="L166">    }</span>
+    
+    /* (non-Javadoc)
+     * @see org.apache.fulcrum.parser.BaseValueParser#isValid()
+     */
+    public boolean isValid() 
+    {
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">    	if ( this.parameters.size() == 0 )</span>
+    	{
+<span class="fc" id="L175">    		return true;</span>
+    	}
+<span class="nc" id="L177">    	return false;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
