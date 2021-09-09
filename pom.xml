@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.turbine</groupId>
     <artifactId>turbine-parent</artifactId>
-    <version>8</version>
+    <version>9-SNAPSHOT</version>
     <relativePath></relativePath>
   </parent>
 
@@ -35,8 +35,9 @@
   <!-- Required for staging to work -->
   <distributionManagement>
     <site>
-       <id>turbine.apache.org</id>
-       <url>https://turbine.apache.org/fulcrum/fulcrum-parser/</url>
+         <id>apache.website</id>
+         <!-- scmPubUrl should be different for each project. If not defined scmPubUrl uses default value ${project.distributionManagement.site.url} -->
+         <url>scm:git:${turbine.scmPubUrl}</url>
     </site>
   </distributionManagement>
   <scm>
@@ -148,7 +149,7 @@
   </build>
 
    <properties>
-    <turbine.site.path>fulcrum/fulcrum-parser</turbine.site.path>
+    <turbine.site.path>turbine-fulcrum-parser</turbine.site.path>
     <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/parser</turbine.scmPubCheckoutDirectory>
   </properties>  
 	
