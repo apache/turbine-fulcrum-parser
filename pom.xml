@@ -149,6 +149,15 @@
   <build>
     <sourceDirectory>${basedir}/src/java</sourceDirectory>
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
+     <testResources>
+      <testResource>
+        <directory>${basedir}/src/test</directory>
+        <includes>
+        <include>*.java</include>
+          <include>log4j2*.xml</include>
+        </includes>
+      </testResource>
+    </testResources>
   </build>
 
    <properties>

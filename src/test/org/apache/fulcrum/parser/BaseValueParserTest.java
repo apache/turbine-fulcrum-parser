@@ -132,13 +132,13 @@ public class BaseValueParserTest extends BaseUnit5Test
         assertNull(result);
 
         // default
-        result = parser.getByteObject("default", new Byte((byte)3));
-        assertEquals(result, new Byte((byte)3));
+        result = parser.getByteObject("default", Byte.valueOf((byte)3));
+        assertEquals(result, Byte.valueOf((byte)3));
 
         // param exists
         parser.add("exists", "1");
         result = parser.getByteObject("exists");
-        assertEquals(result, new Byte((byte)1));
+        assertEquals(result, Byte.valueOf((byte)1));
 
         // unparsable value
         parser.add("unparsable", "a");
@@ -289,13 +289,13 @@ public class BaseValueParserTest extends BaseUnit5Test
         assertNull(result);
 
         // default
-        result = parser.getFloatObject("default", new Float(3));
-        assertEquals(new Float(3), result);
+        result = parser.getFloatObject("default", Float.valueOf(3));
+        assertEquals(Float.valueOf(3), result);
 
         // param exists
         parser.add("exists", "1");
         result = parser.getFloatObject("exists");
-        assertEquals(new Float(1), result);
+        assertEquals(Float.valueOf(1), result);
 
         // unparsable value
         parser.add("unparsable", "a");
@@ -307,7 +307,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array", "2");
         parser.add("array", "3");
         Float arrayResult[] = parser.getFloatObjects("array");
-        Float compare[] = {new Float(1), new Float(2), new Float(3)};
+        Float compare[] = {Float.valueOf(1), Float.valueOf(2), Float.valueOf(3)};
         assertEquals(compare.length, arrayResult.length);
         for( int i=0; i<compare.length; i++)
         {
@@ -319,7 +319,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array2", "a");
         parser.add("array2", "3");
         Float arrayResult2[] = parser.getFloatObjects("array2");
-        Float compare2[] = {new Float(1), null, new Float(3)};
+        Float compare2[] = { Float.valueOf(1), null, Float.valueOf(3)};
         assertEquals(compare2.length, arrayResult2.length);
         for( int i=0; i<compare2.length; i++)
         {
@@ -379,13 +379,13 @@ public class BaseValueParserTest extends BaseUnit5Test
         assertNull(result);
 
         // default
-        result = parser.getDoubleObject("default", new Double(3));
-        assertEquals( new Double(3), result);
+        result = parser.getDoubleObject("default", Double.valueOf(3));
+        assertEquals( Double.valueOf(3), result);
 
         // param exists
         parser.add("exists", "1");
         result = parser.getDoubleObject("exists");
-        assertEquals( new Double(1), result);
+        assertEquals( Double.valueOf(1), result);
 
         // unparsable value
         parser.add("unparsable", "a");
@@ -397,7 +397,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array", "2");
         parser.add("array", "3");
         Double arrayResult[] = parser.getDoubleObjects("array");
-        Double compare[] = {new Double(1), new Double(2), new Double(3)};
+        Double compare[] = { Double.valueOf(1), Double.valueOf(2), Double.valueOf(3)};
         assertEquals(arrayResult.length, compare.length);
         for( int i=0; i<compare.length; i++)
         {
@@ -409,7 +409,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array2", "a");
         parser.add("array2", "3");
         Double arrayResult2[] = parser.getDoubleObjects("array2");
-        Double compare2[] = {new Double(1), null, new Double(3)};
+        Double compare2[] = { Double.valueOf(1), null, Double.valueOf(3)};
         assertEquals(arrayResult2.length, compare2.length);
         for( int i=0; i<compare2.length; i++)
         {
@@ -1622,12 +1622,12 @@ public class BaseValueParserTest extends BaseUnit5Test
         assertEquals( (byte) -127, parser.getByte("foo4"),"Wrong value");
         assertEquals( (byte) 100,  parser.getByte("foo5"),"Wrong value");
 
-        assertEquals( new Byte((byte) 0),    parser.getByteObject("foo0"),"Wrong value");
-        assertEquals( new Byte((byte) 127),  parser.getByteObject("foo1"),"Wrong value");
-        assertEquals( new Byte((byte) -1),   parser.getByteObject("foo2"),"Wrong value");
-        assertEquals( new Byte((byte) 0),    parser.getByteObject("foo3"),"Wrong value");
-        assertEquals( new Byte((byte) -127), parser.getByteObject("foo4"),"Wrong value");
-        assertEquals( new Byte((byte) 100),  parser.getByteObject("foo5"),"Wrong value");
+        assertEquals( Byte.valueOf((byte) 0),    parser.getByteObject("foo0"),"Wrong value");
+        assertEquals( Byte.valueOf((byte) 127),  parser.getByteObject("foo1"),"Wrong value");
+        assertEquals( Byte.valueOf((byte) -1),   parser.getByteObject("foo2"),"Wrong value");
+        assertEquals( Byte.valueOf((byte) 0),    parser.getByteObject("foo3"),"Wrong value");
+        assertEquals( Byte.valueOf((byte) -127), parser.getByteObject("foo4"),"Wrong value");
+        assertEquals( Byte.valueOf((byte) 100),  parser.getByteObject("foo5"),"Wrong value");
 
     }
     @Test

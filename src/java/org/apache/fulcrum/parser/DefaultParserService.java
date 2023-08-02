@@ -20,6 +20,7 @@ package org.apache.fulcrum.parser;
  */
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -471,7 +472,8 @@ public class DefaultParserService
                     break;
                 case "maxWaitMillis":
                     int maxWaitMillis = poolConf.getValueAsInteger();
-                    genObjPoolConfig.setMaxWaitMillis(maxWaitMillis);
+                    Duration maxWaitMillisDuration = Duration.ofMillis( maxWaitMillis );
+                    genObjPoolConfig.setMaxWait(maxWaitMillisDuration);
                     break;
                 case "blockWhenExhausted":
                     boolean blockWhenExhausted = poolConf.getValueAsBoolean();
@@ -501,7 +503,12 @@ public class DefaultParserService
                     
                     break;
                 }  
-            }    
+            }  
+            
+            if (!genObjPoolConfig.getBlockWhenExhausted() && !genObjPoolConfig.getMaxWaitDuration().isZero()) {
+                getLogger().warn( "maxWaitMillis will only be applied, if blockWhenExhausted is set. maxWait: "
+                  + genObjPoolConfig.getMaxWaitDuration() );
+            }
             // reinit the pools
             valueParserPool.setConfig(genObjPoolConfig);
             parameterParserPool.setConfig(genObjPoolConfig);

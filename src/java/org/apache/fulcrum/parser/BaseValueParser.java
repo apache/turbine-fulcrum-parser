@@ -722,7 +722,7 @@ public class BaseValueParser
     public Double getDoubleObject(String name, Double defaultValue)
     {
         Number result = getNumber(name);
-        return (result == null ? defaultValue : new Double(result.doubleValue()));
+        return (result == null ? defaultValue : Double.valueOf(result.doubleValue()));
     }
 
     /**
@@ -756,7 +756,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = (number == null ? null : new Double(number.doubleValue()));
+                result[i] = (number == null ? null : Double.valueOf(number.doubleValue()));
             }
         }
         return result;
@@ -826,7 +826,7 @@ public class BaseValueParser
     public Float getFloatObject(String name, Float defaultValue)
     {
         Number result = getNumber(name);
-        return (result == null ? defaultValue : new Float(result.floatValue()));
+        return (result == null ? defaultValue : Float.valueOf(result.floatValue()));
     }
 
     /**
@@ -860,7 +860,7 @@ public class BaseValueParser
             for (int i = 0; i < value.length; i++)
             {
                 Number number = parseNumber(value[i]);
-                result[i] = (number == null ? null : new Float(number.floatValue()));
+                result[i] = (number == null ? null : Float.valueOf(number.floatValue()));
             }
         }
         return result;
