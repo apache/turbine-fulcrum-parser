@@ -513,7 +513,8 @@ public class DefaultParserService
             valueParserPool.setConfig(genObjPoolConfig);
             parameterParserPool.setConfig(genObjPoolConfig);
             cookieParserPool.setConfig(genObjPoolConfig);
-            
+
+            getLogger().info("Update Config Commons2 Pools with " + genObjPoolConfig );
             getLogger().debug(valueParserPool.toString());
             getLogger().debug(parameterParserPool.toString());
             getLogger().debug(cookieParserPool.toString());

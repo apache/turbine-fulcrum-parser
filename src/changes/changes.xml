@@ -22,8 +22,18 @@
     </properties>
 
     <body>
-       <release version="2.0.1" date="in SVN">
-        <action dev="gk" type="update" date="2019-25-06">
+       <release version="3.0.0" date="in GIT">
+         <action dev="gk" type="update" date="2023-08-02">
+            - Use maxWait Duration on pool2 
+            - major update fulcrum yaafi to 2.0.0
+            - minor update commons-lang3 to 3.13.0
+          </action>
+         <action dev="gk" type="update" date="2022-20-10">
+            - minor update commons pool2 version to 2.11.1 
+            - commons-pool2 is now scope provided to avoid dependency inconsistencies with commons module dbcp2 
+            - java 11 baseline 
+          </action>
+          <action dev="gk" type="update" date="2019-25-06">
             - use optional Fulcrum Pool (without Recycable feature) again as fallback
             - fix bug in parser resources (using new dispose method from ValueParser instead of same method in Fulcrum Pool Recycable 
             - add + fix tests
