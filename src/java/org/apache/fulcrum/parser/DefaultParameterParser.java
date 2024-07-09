@@ -30,8 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 
 import org.apache.avalon.framework.service.ServiceException;
 import org.apache.commons.lang3.ArrayUtils;
@@ -381,7 +381,7 @@ public class DefaultParameterParser
     }
 
     /* (non-Javadoc)
-     * @see org.apache.fulcrum.parser.ParameterParser#getFileName(javax.servlet.http.Part)
+     * @see org.apache.fulcrum.parser.ParameterParser#getFileName(jakarta.servlet.http.Part)
      */
     @Override
     public String getFileName(Part part)

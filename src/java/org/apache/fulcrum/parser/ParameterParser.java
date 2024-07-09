@@ -21,8 +21,8 @@ package org.apache.fulcrum.parser;
 
 import java.util.Collection;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 
 /**
  * ParameterParser is an interface to a utility to handle parsing and

@@ -24,9 +24,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 
 import org.apache.avalon.framework.configuration.Configurable;
 import org.apache.avalon.framework.configuration.Configuration;
@@ -233,7 +233,7 @@ public class DefaultParserService
     /**
      * Parse the given request for uploaded files
      *
-     * @return A list of {@link javax.servlet.http.Part}s
+     * @return A list of {@link jakarta.servlet.http.Part}s
      *
      * @throws ServiceException if parsing fails
      */

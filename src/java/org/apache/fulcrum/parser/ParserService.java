@@ -21,8 +21,8 @@ package org.apache.fulcrum.parser;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 
 import org.apache.avalon.framework.service.ServiceException;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
@@ -140,7 +140,7 @@ public interface ParserService
      * Parse the given request for uploaded files
      *
      * @param request the HttpServletRequest object
-     * @return A list of {@link javax.servlet.http.Part}s
+     * @return A list of {@link jakarta.servlet.http.Part}s
      * @throws ServiceException if parsing fails
      */
     List<Part> parseUpload(HttpServletRequest request) throws ServiceException;

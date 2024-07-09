@@ -21,8 +21,8 @@ package org.apache.fulcrum.parser;
  */
 
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * CookieParser is an interface to a utility to to get and set values
