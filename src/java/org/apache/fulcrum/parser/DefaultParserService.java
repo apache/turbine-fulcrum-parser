@@ -293,7 +293,7 @@ public class DefaultParserService
                         throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
                     }
 				}
-            } else if ( ppClass.equals(DefaultParameterParser.class) )
+            } else if ( ppClass.equals(DefaultParameterParser.class) || DefaultParameterParser.class.isAssignableFrom(ppClass) ) 
             {
                 DefaultParameterParser parserInstance = null;
                 try {
@@ -310,7 +310,7 @@ public class DefaultParserService
                         throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
                     }
                 }
-            } else if ( ppClass.equals(DefaultCookieParser.class) )
+            } else if ( ppClass.equals(DefaultCookieParser.class) || DefaultCookieParser.class.isAssignableFrom(ppClass) )
             {
                 DefaultCookieParser parserInstance = null;
                 try {
