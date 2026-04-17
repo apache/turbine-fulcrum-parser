@@ -29,13 +29,6 @@
     <publishDate format="dd MMMM yyyy" position="left" />
     
     <version position="left" />
-   
-   <!-- remove if parent is upgrade to 14, and fluido-skin 2.0.0 requires doxia 2.0.0 -->
-    <skin>
-        <groupId>org.apache.maven.skins</groupId>
-        <artifactId>maven-fluido-skin</artifactId>
-        <version>2.0.0-M11</version>
-  </skin>
   
   <body>
   <head/>
