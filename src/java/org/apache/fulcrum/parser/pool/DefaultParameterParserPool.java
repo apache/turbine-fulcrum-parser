@@ -19,42 +19,46 @@ package org.apache.fulcrum.parser.pool;
  * under the License.
  */
 
-import org.apache.commons.pool2.PooledObjectFactory;
-import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.commons.pool2.KeyedPooledObjectFactory;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig;
 import org.apache.fulcrum.parser.DefaultParameterParser;
 
 
 /**
- * Pool manager for {@link org.apache.fulcrum.parser.DefaultParameterParser} objects
+ * Pool manager for {@link org.apache.fulcrum.parser.DefaultParameterParser} objects,
+ * keyed by the concrete {@code DefaultParameterParser} subclass requested, so that a
+ * configured custom subclass is genuinely instantiated and pooled instead of always
+ * being served the default class.
  *
  * @author <a href="mailto:painter@apache.org">Jeffery Painter</a>
  * @version $Id: DefaultParameterParserPool.java 1851080 2019-01-16 12:07:00Z painter $
  */
-public class DefaultParameterParserPool 
-	extends GenericObjectPool<DefaultParameterParser>  
+public class DefaultParameterParserPool
+	extends GenericKeyedObjectPool<Class<? extends DefaultParameterParser>, DefaultParameterParser>
 {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param factory the factory
 	 */
-	public DefaultParameterParserPool(PooledObjectFactory<DefaultParameterParser> factory) 
+	public DefaultParameterParserPool(KeyedPooledObjectFactory<Class<? extends DefaultParameterParser>, DefaultParameterParser> factory)
 	{
 		super(factory);
 	}
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * This can be used to have full control over the pool using configuration
 	 * object.
-	 * 
+	 *
 	 * @param factory the factory
 	 * @param config user defined configuration
 	 */
-	public DefaultParameterParserPool(PooledObjectFactory<DefaultParameterParser> factory, GenericObjectPoolConfig config) 
+	public DefaultParameterParserPool(KeyedPooledObjectFactory<Class<? extends DefaultParameterParser>, DefaultParameterParser> factory,
+			GenericKeyedObjectPoolConfig<DefaultParameterParser> config)
 	{
 		super(factory, config);
 	}

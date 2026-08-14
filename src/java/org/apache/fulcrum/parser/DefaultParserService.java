@@ -37,6 +37,7 @@ import org.apache.avalon.framework.service.ServiceException;
 import org.apache.avalon.framework.service.ServiceManager;
 import org.apache.avalon.framework.service.Serviceable;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.fulcrum.parser.ValueParser.URLCaseFolding;
 import org.apache.fulcrum.parser.pool.BaseValueParserFactory;
@@ -90,10 +91,18 @@ public class DefaultParserService
      */
     private BaseValueParserPool valueParserPool;
 
-    /** 
-     * Use commons pool to manage parameter parsers 
+    /**
+     * Use commons pool to manage parameter parsers
      */
     private DefaultParameterParserPool parameterParserPool;
+
+    /**
+     * The class instantiated for requests naming the base
+     * {@code DefaultParameterParser} class, as configured via
+     * {@link ParserService#PARAMETER_PARSER_CLASS_KEY}. Defaults to
+     * {@code DefaultParameterParser} itself.
+     */
+    private Class<? extends DefaultParameterParser> parameterParserClass = DefaultParameterParser.class;
 
     /** 
      * Use commons pool to manage cookie parsers 
@@ -101,21 +110,11 @@ public class DefaultParserService
     private CookieParserPool cookieParserPool;
 
 
-    public DefaultParserService() 
+    public DefaultParserService()
     {
     }
-    
-    public DefaultParserService(GenericObjectPoolConfig<?> config) 
-    {
-	    // init the pool
-	    valueParserPool 
-    		= new BaseValueParserPool(new BaseValueParserFactory(), config);
 
-	    parameterParserPool 
-	    	= new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
-    }
 
-    
     /**
      * Get the character encoding that will be used by this ValueParser.
      */
@@ -278,36 +277,55 @@ public class DefaultParserService
                 }
             } else if ( ppClass.equals(BaseValueParser.class) )
             {
-            	BaseValueParser parserInstance = null;
-				try {
-				    parserInstance = valueParserPool.borrowObject();
-					vp = (P) parserInstance;
-					if (vp == null) {
+                BaseValueParser parserInstance = null;
+                try {
+                    parserInstance = valueParserPool.borrowObject();
+                	vp = (P) parserInstance;
+                	if (vp == null) {
                         throw new InstantiationException("Could not borrow object from pool: " + valueParserPool);
                     }
-				} catch (Exception e) {
+                } catch (Exception e) {
                     try {
                         valueParserPool.invalidateObject(parserInstance);
                         parserInstance = null;
                     } catch (Exception e1) {
                         throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
                     }
-				}
-            } else if ( ppClass.equals(DefaultParameterParser.class) || DefaultParameterParser.class.isAssignableFrom(ppClass) ) 
+                }
+            } else if ( ppClass.equals(DefaultParameterParser.class) || DefaultParameterParser.class.isAssignableFrom(ppClass) )
             {
                 DefaultParameterParser parserInstance = null;
+                // Requests naming the base class defer to the configured default
+                // implementation (PARAMETER_PARSER_CLASS_KEY); explicit subclass
+                // requests are keyed by that subclass itself. Resolving this once,
+                // up front, keeps the borrow key and the actually instantiated
+                // class in lockstep, since putParser() later returns the object
+                // to the pool keyed by parser.getClass().
+                Class<? extends DefaultParameterParser> keyClass = ppClass.equals(DefaultParameterParser.class)
+                        ? parameterParserClass : ppClass.asSubclass(DefaultParameterParser.class);
                 try {
-                    parserInstance = parameterParserPool.borrowObject();
+                    // Keyed by the requested class itself, so a configured subclass
+                    // is genuinely instantiated and pooled, not silently replaced by
+                    // the default class (this is the actual bug fix.
+                    parserInstance = parameterParserPool.borrowObject(keyClass);
                 	vp = (P) parserInstance;
                 	if (vp == null) {
                         throw new InstantiationException("Could not borrow object from pool: " + parameterParserPool);
                     }
                 } catch (Exception e) {
+                    if (parserInstance == null) {
+                        // borrowObject/create(key) itself failed -- there is nothing
+                        // to invalidate, and we must not lose the class name behind a
+                        // secondary invalidateObject(key, null) failure.
+                        throw new InstantiationException("Could not instantiate parameter parser class "
+                                + ppClass.getName() + ": " + e.getMessage());
+                    }
                     try {
-                        parameterParserPool.invalidateObject(parserInstance);
+                        parameterParserPool.invalidateObject(keyClass, parserInstance);
                         parserInstance = null;
                     } catch (Exception e1) {
-                        throw new InstantiationException("Could not invalidate object " + e1.getMessage() + " after exception: " + e.getMessage());
+                        throw new InstantiationException("Could not invalidate object " + e1.getMessage()
+                                + " after exception on parameter parser class " + ppClass.getName() + ": " + e.getMessage());
                     }
                 }
             } else if ( ppClass.equals(DefaultCookieParser.class) || DefaultCookieParser.class.isAssignableFrom(ppClass) )
@@ -373,8 +391,9 @@ public class DefaultParserService
         } else if ( parser.getClass().equals(DefaultParameterParser.class) ||
                 parser instanceof DefaultParameterParser)
         {
-            parameterParserPool.returnObject( (DefaultParameterParser) parser );
-        	
+            DefaultParameterParser parameterParser = (DefaultParameterParser) parser;
+            parameterParserPool.returnObject( parameterParser.getClass(), parameterParser );
+
         } else if ( parser.getClass().equals(DefaultCookieParser.class) ||
                 parser instanceof DefaultCookieParser)
         {
@@ -419,7 +438,25 @@ public class DefaultParserService
                             .getValue(PARAMETER_ENCODING_DEFAULT).toLowerCase();
 
         automaticUpload = conf.getChild(AUTOMATIC_KEY).getValueAsBoolean(AUTOMATIC_DEFAULT);
-        
+
+        // The class instantiated for requests naming the base DefaultParameterParser
+        // class. Defaults to DefaultParameterParser itself; explicit requests for a
+        // specific subclass are unaffected by this setting.
+        parameterParserClass = DefaultParameterParser.class;
+        String parameterParserClassName = conf.getChild(PARAMETER_PARSER_CLASS_KEY).getValue(null);
+        if (StringUtils.isNotEmpty(parameterParserClassName))
+        {
+            try
+            {
+                parameterParserClass = Class.forName(parameterParserClassName).asSubclass(DefaultParameterParser.class);
+            }
+            catch (ClassNotFoundException | ClassCastException e)
+            {
+                throw new ConfigurationException("Could not load " + PARAMETER_PARSER_CLASS_KEY
+                        + " '" + parameterParserClassName + "': " + e.getMessage(), e);
+            }
+        }
+
         useFulcrumPool = conf.getChild(FULCRUM_POOL_KEY).getValueAsBoolean(FULCRUM_POOL_DEFAULT);
         
         if (useFulcrumPool) {
@@ -440,16 +477,28 @@ public class DefaultParserService
             config.setMaxIdle(DEFAULT_MAX_IDLE);
             config.setMaxTotal(DEFAULT_POOL_CAPACITY);
 
+            // Parameter-parser pool is keyed by the requested class (may be a
+            // configured subclass), so it needs its own keyed config -- a plain
+            // GenericObjectPoolConfig cannot be used with a GenericKeyedObjectPool.
+            // maxTotalPerKey is set equal to maxTotal so the default (single-class)
+            // case retains today's effective capacity unchanged (research.md
+            // Decision 5) instead of silently shrinking to Commons Pool2's
+            // per-key default of 8.
+            GenericKeyedObjectPoolConfig<DefaultParameterParser> keyedConfig = new GenericKeyedObjectPoolConfig<>();
+            keyedConfig.setMaxIdlePerKey(DEFAULT_MAX_IDLE);
+            keyedConfig.setMaxTotal(DEFAULT_POOL_CAPACITY);
+            keyedConfig.setMaxTotalPerKey(DEFAULT_POOL_CAPACITY);
+
             // init the pool
-            valueParserPool 
+            valueParserPool
                 = new BaseValueParserPool(new BaseValueParserFactory(), config);
 
             // init the pool
-            parameterParserPool 
-                = new DefaultParameterParserPool(new DefaultParameterParserFactory(), config);
-            
+            parameterParserPool
+                = new DefaultParameterParserPool(new DefaultParameterParserFactory(parameterParserClass), keyedConfig);
+
             // init the pool
-            cookieParserPool 
+            cookieParserPool
                 = new CookieParserPool(new CookieParserFactory(), config);
             
             getLogger().info("Init Commons2 Pool Services.." );
@@ -463,55 +512,76 @@ public class DefaultParserService
             GenericObjectPoolConfig genObjPoolConfig = new GenericObjectPoolConfig();
             genObjPoolConfig.setMaxIdle(DEFAULT_MAX_IDLE);
             genObjPoolConfig.setMaxTotal(DEFAULT_POOL_CAPACITY);
+
+            // Parallel keyed config for the parameter-parser pool, built from the
+            // same <pool> XML children as genObjPoolConfig above, so a single
+            // <pool> block continues to tune all three parser pools uniformly.
+            GenericKeyedObjectPoolConfig<DefaultParameterParser> genKeyedObjPoolConfig = new GenericKeyedObjectPoolConfig<>();
+            genKeyedObjPoolConfig.setMaxIdlePerKey(DEFAULT_MAX_IDLE);
+            genKeyedObjPoolConfig.setMaxTotal(DEFAULT_POOL_CAPACITY);
+            genKeyedObjPoolConfig.setMaxTotalPerKey(DEFAULT_POOL_CAPACITY);
+
             for (Configuration poolConf : poolChildren) {
                 // use common pool2 configuration names
                 switch (poolConf.getName()) {
                 case "maxTotal":
                     int defaultCapacity = poolConf.getValueAsInteger();
                     genObjPoolConfig.setMaxTotal(defaultCapacity);
+                    genKeyedObjPoolConfig.setMaxTotal(defaultCapacity);
+                    // research.md Decision 5: mirror maxTotal into maxTotalPerKey so the
+                    // default (single-class) case keeps today's effective capacity instead
+                    // of silently shrinking to Commons Pool2's per-key default of 8.
+                    genKeyedObjPoolConfig.setMaxTotalPerKey(defaultCapacity);
                     break;
                 case "maxWaitMillis":
                     int maxWaitMillis = poolConf.getValueAsInteger();
                     Duration maxWaitMillisDuration = Duration.ofMillis( maxWaitMillis );
                     genObjPoolConfig.setMaxWait(maxWaitMillisDuration);
+                    genKeyedObjPoolConfig.setMaxWait(maxWaitMillisDuration);
                     break;
                 case "blockWhenExhausted":
                     boolean blockWhenExhausted = poolConf.getValueAsBoolean();
                     genObjPoolConfig.setBlockWhenExhausted(blockWhenExhausted);
+                    genKeyedObjPoolConfig.setBlockWhenExhausted(blockWhenExhausted);
                     break;
                 case "maxIdle":
                     int maxIdle = poolConf.getValueAsInteger();
                     genObjPoolConfig.setMaxIdle(maxIdle);
+                    genKeyedObjPoolConfig.setMaxIdlePerKey(maxIdle);
                     break;
                 case "minIdle":
                     int minIdle = poolConf.getValueAsInteger();
                     genObjPoolConfig.setMinIdle(minIdle);
+                    genKeyedObjPoolConfig.setMinIdlePerKey(minIdle);
                     break;
                 case "testOnReturn":
                     boolean testOnReturn = poolConf.getValueAsBoolean();
                     genObjPoolConfig.setTestOnReturn(testOnReturn);
+                    genKeyedObjPoolConfig.setTestOnReturn(testOnReturn);
                     break;
                 case "testOnBorrow":
                     boolean testOnBorrow = poolConf.getValueAsBoolean();
                     genObjPoolConfig.setTestOnBorrow(testOnBorrow);
+                    genKeyedObjPoolConfig.setTestOnBorrow(testOnBorrow);
                     break;
                 case "testOnCreate":
                     boolean testOnCreate = poolConf.getValueAsBoolean();
                     genObjPoolConfig.setTestOnCreate(testOnCreate);
+                    genKeyedObjPoolConfig.setTestOnCreate(testOnCreate);
                     break;
                 default:
-                    
+
                     break;
-                }  
-            }  
-            
+                }
+            }
+
             if (!genObjPoolConfig.getBlockWhenExhausted() && !genObjPoolConfig.getMaxWaitDuration().isZero()) {
                 getLogger().warn( "maxWaitMillis will only be applied, if blockWhenExhausted is set. maxWait: "
                   + genObjPoolConfig.getMaxWaitDuration() );
             }
             // reinit the pools
             valueParserPool.setConfig(genObjPoolConfig);
-            parameterParserPool.setConfig(genObjPoolConfig);
+            parameterParserPool.setConfig(genKeyedObjPoolConfig);
             cookieParserPool.setConfig(genObjPoolConfig);
 
             getLogger().info("Update Config Commons2 Pools with " + genObjPoolConfig );

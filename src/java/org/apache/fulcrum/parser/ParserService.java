@@ -61,6 +61,16 @@ public interface ParserService
     String POOL_KEY = "pool2";
 
     /**
+     * Property for configuring the concrete {@link DefaultParameterParser}
+     * subclass to instantiate when the base {@code DefaultParameterParser}
+     * class is requested from {@link #getParser(Class)}. Must name a class
+     * that extends {@code DefaultParameterParser} and has a public no-arg
+     * constructor. Explicit requests for a specific subclass are unaffected
+     * by this setting.
+     */
+    String PARAMETER_PARSER_CLASS_KEY = "parameterParserClass";
+
+    /**
      * <p> The default value of 'automaticUpload' property
      * (<code>false</code>).  If set to <code>true</code>, parsing the
      * multipart request will be performed automatically by {@link

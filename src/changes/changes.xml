@@ -23,6 +23,23 @@
 
     <body>
        <release version="4.0.0" date="in GIT">
+        <action dev="gk" type="add" date="2026-08-14">
+             - Add: DefaultParameterParserFactory now accepts a configured
+               DefaultParameterParser subclass to instantiate for requests
+               naming the base DefaultParameterParser class, via the new
+               parser/parameterParserClass configuration property. Explicit
+               requests for a specific subclass are unaffected.
+          </action>
+        <action dev="gk" type="fix" date="2026-08-14">
+             - Fix: a custom DefaultParameterParser subclass named via
+               services.RunDataService.*.parameter.parser was silently ignored
+               at instantiation time -- the pool always handed back the plain
+               default class regardless of what was requested. The parameter-parser
+               pool/factory is now generified by key using the requested class (GenericKeyedObjectPool /
+               BaseKeyedPooledObjectFactory), so the configured subclass is genuinely
+               instantiated and pooled. No configuration format changes; the
+               existing property key now simply works as originally intended.
+          </action>
         <action dev="gk" type="update" date="2024-11-27">
              - Update to site 2.0.0
           </action>

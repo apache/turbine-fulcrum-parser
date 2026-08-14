@@ -2,6 +2,7 @@ package org.apache.fulcrum.parser;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -166,9 +167,67 @@ public class ParserServiceTest extends BaseUnit5Test
     public void testNoUploadParts() throws Exception {
         HttpServletRequest request = getMockRequest();
         parameterParser.add("other-field", "foo");
-        
+
         List<Part> parts = parserService.parseUpload( request );
         assertTrue( parts.isEmpty() );
         //assertTrue( parts.size() == 2 );
+    }
+
+    /**
+     * A configured {@link DefaultParameterParser} subclass must actually be the
+     * instance returned by {@link ParserService#getParser(Class)} — not merely
+     * cast to it while the pool silently hands back a plain {@code DefaultParameterParser}.
+     */
+    @Test
+    public void getParser_returnsConfiguredSubclass() throws Exception
+    {
+        DefaultParameterParser pp = (DefaultParameterParser) parserService.getParser(TaggingParameterParser.class);
+
+        assertEquals(TaggingParameterParser.class, pp.getClass());
+
+        pp.add("k", "v");
+        assertTrue(pp.getString("k").contains(TaggingParameterParser.TAG));
+
+        parserService.putParser(pp);
+    }
+
+    /**
+     * Requesting the default class must remain byte-for-byte unchanged (FR-004):
+     * still the default class, still returned successfully.
+     */
+    @Test
+    public void getParser_defaultClassUnchanged() throws Exception
+    {
+        DefaultParameterParser pp = (DefaultParameterParser) parserService.getParser(DefaultParameterParser.class);
+
+        assertEquals(DefaultParameterParser.class, pp.getClass());
+
+        parserService.putParser(pp);
+    }
+
+    /**
+     * A configured class that cannot be instantiated (here: no public no-arg
+     * constructor) must fail loudly and name the offending class, not silently
+     * fall back to the default class (FR-005).
+     */
+    @Test
+    public void getParser_uninstantiableClassFailsFast()
+    {
+        InstantiationException ex = assertThrows(InstantiationException.class,
+                () -> parserService.getParser(NoDefaultConstructorParameterParser.class));
+
+        assertTrue(ex.getMessage().contains(NoDefaultConstructorParameterParser.class.getName()));
+    }
+
+    /**
+     * Test-only fixture with no public no-arg constructor, used by
+     * {@link #getParser_uninstantiableClassFailsFast()}.
+     */
+    private static final class NoDefaultConstructorParameterParser extends DefaultParameterParser
+    {
+        @SuppressWarnings("unused")
+        NoDefaultConstructorParameterParser(String requiredArg)
+        {
+        }
     }
 }
