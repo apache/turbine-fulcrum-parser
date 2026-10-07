@@ -22,7 +22,7 @@
   xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd"
   name="Apache Turbine - Fulcrum Parser" combine.self="merge">  
   
-      <bannerRight name="Fulcrum Parser" >
+   <bannerRight name="Fulcrum Parser" >
        <image src="https://turbine.apache.org/images/powered-by-logo.gif" alt="Apache Turbine " position="left"/>
    </bannerRight>
     

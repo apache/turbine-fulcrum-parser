@@ -81,6 +81,15 @@
           </td>
         </tr>
         <tr>
+          <td>parameterParserClass</td>
+          <td>String</td>
+          <td>[0|1]</td>
+          <td>
+            If set, a configured DefaultParameterParser subclass is used for requests
+            instead of the default DefaultParameterParser class. This is not applicable for BaseValueParser, DefaultCookieParser.
+          </td>
+        </tr>
+        <tr>
           <td>automaticUpload</td>
           <td>boolean</td>
           <td>[0|1]</td>
@@ -116,6 +125,7 @@
     <urlCaseFolding>lower</urlCaseFolding>
     <parameterEncoding>utf-8</parameterEncoding>
     <automaticUpload>true</automaticUpload>
+    <parameterParserClass>org.apache.fulcrum.parser.TaggingParameterParser</parameterParserClass>
     <pool2>
          <maxTotal>2048</maxTotal><!-- default 8 -->
          <blockWhenExhausted>true</blockWhenExhausted><!-- default is true -->
