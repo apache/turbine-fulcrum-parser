@@ -18,8 +18,12 @@ package org.apache.fulcrum.parser;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -199,13 +203,13 @@ public class BaseValueParserTest extends BaseUnit5Test
         assertNull(result);
 
         // default
-        result = parser.getIntObject("default", new Integer(3));
-        assertEquals(result, new Integer(3));
+        result = parser.getIntObject("default", Integer.valueOf(3));
+        assertEquals(result, Integer.valueOf(3));
 
         // param exists
         parser.add("exists", "1");
         result = parser.getIntObject("exists");
-        assertEquals(result, new Integer(1));
+        assertEquals(result, Integer.valueOf(1));
 
         // unparsable value
         parser.add("unparsable", "a");
@@ -217,7 +221,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array", "2");
         parser.add("array", "3");
         Integer arrayResult[] = parser.getIntObjects("array");
-        Integer compare[] = {new Integer(1), new Integer(2), new Integer(3)};
+        Integer compare[] = {Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)};
         assertEquals(arrayResult.length, compare.length);
         for( int i=0; i<compare.length; i++)
         {
@@ -229,7 +233,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array2", "a");
         parser.add("array2", "3");
         Integer arrayResult2[] = parser.getIntObjects("array2");
-        Integer compare2[] = {new Integer(1), null, new Integer(3)};
+        Integer compare2[] = {Integer.valueOf(1), null, Integer.valueOf(3)};
         assertEquals(arrayResult2.length, compare2.length);
         for( int i=0; i<compare2.length; i++)
         {
@@ -469,13 +473,13 @@ public class BaseValueParserTest extends BaseUnit5Test
         assertNull(result);
 
         // default
-        result = parser.getLongObject("default", new Long(3));
-        assertEquals(result, new Long(3));
+        result = parser.getLongObject("default", Long.valueOf(3));
+        assertEquals(result, Long.valueOf(3));
 
         // param exists
         parser.add("exists", "1");
         result = parser.getLongObject("exists");
-        assertEquals(result, new Long(1));
+        assertEquals(result, Long.valueOf(1));
 
         // unparsable value
         parser.add("unparsable", "a");
@@ -487,7 +491,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array", "2");
         parser.add("array", "3");
         Long arrayResult[] = parser.getLongObjects("array");
-        Long compare[] = {new Long(1), new Long(2), new Long(3)};
+        Long compare[] = { Long.valueOf(1), Long.valueOf(2), Long.valueOf(3)};
         assertEquals(arrayResult.length, compare.length);
         for( int i=0; i<compare.length; i++)
         {
@@ -499,7 +503,7 @@ public class BaseValueParserTest extends BaseUnit5Test
         parser.add("array2", "a");
         parser.add("array2", "3");
         Long arrayResult2[] = parser.getLongObjects("array2");
-        Long compare2[] = {new Long(1), null, new Long(3)};
+        Long compare2[] = { Long.valueOf(1), null,  Long.valueOf(3)};
         assertEquals(arrayResult2.length, compare2.length);
         for( int i=0; i<compare2.length; i++)
         {
@@ -587,7 +591,7 @@ public class BaseValueParserTest extends BaseUnit5Test
     {
         // no param
         BigDecimal result = parser.getBigDecimal("invalid");
-        assertNull(result); // object returns NOT new BigDecimal(0)
+        assertNull(result); // object returns NOT new IBigDecimal(0)
 
         // default
         result = parser.getBigDecimal("default", new BigDecimal(3));
@@ -824,7 +828,7 @@ public class BaseValueParserTest extends BaseUnit5Test
 
         assertEquals( 0, parser.keySet().size(),"Wrong number of keys");
 
-        Integer testValue = new Integer(123);
+        Integer testValue = Integer.valueOf(123);
 
         parser.add("foo", testValue);
 
