@@ -22,7 +22,7 @@
     </properties>
 
     <body>
-       <release version="4.0.0" date="in GIT">
+       <release version="5.0.0" date="in GIT">
         <action dev="gk" type="add" date="2026-08-14">
              - Add: DefaultParameterParserFactory now accepts a configured
                DefaultParameterParser subclass to instantiate for requests
@@ -40,6 +40,8 @@
                instantiated and pooled. No configuration format changes; the
                existing property key now simply works as originally intended.
           </action>
+       </release>
+      <release version="4.0.0" date="2024-11-27">
         <action dev="gk" type="update" date="2024-11-27">
              - Update to site 2.0.0
           </action>

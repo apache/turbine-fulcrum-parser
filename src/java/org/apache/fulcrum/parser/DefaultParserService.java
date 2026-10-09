@@ -297,9 +297,7 @@ public class DefaultParserService
                 DefaultParameterParser parserInstance = null;
                 // Requests naming the base class defer to the configured default
                 // implementation (PARAMETER_PARSER_CLASS_KEY); explicit subclass
-                // requests are keyed by that subclass itself. Resolving this once,
-                // up front, keeps the borrow key and the actually instantiated
-                // class in lockstep, since putParser() later returns the object
+                // requests are keyed by that subclass itself; putParser() later returns the object
                 // to the pool keyed by parser.getClass().
                 Class<? extends DefaultParameterParser> keyClass = ppClass.equals(DefaultParameterParser.class)
                         ? parameterParserClass : ppClass.asSubclass(DefaultParameterParser.class);
@@ -370,7 +368,7 @@ public class DefaultParserService
      * the pool service. This allows for pooling 
      * and recycling
      * 
-     * As we are not yet using org.apache.fulcrum.pool.Recyclable, we call insteda {@link ValueParser#dispose()}.
+     * As we are not yet using org.apache.fulcrum.pool.Recyclable, we call instead {@link ValueParser#dispose()}.
      *
      * @param parser The value parser to use
      */
@@ -481,8 +479,7 @@ public class DefaultParserService
             // configured subclass), so it needs its own keyed config -- a plain
             // GenericObjectPoolConfig cannot be used with a GenericKeyedObjectPool.
             // maxTotalPerKey is set equal to maxTotal so the default (single-class)
-            // case retains today's effective capacity unchanged (research.md
-            // Decision 5) instead of silently shrinking to Commons Pool2's
+            // case retains effective capacity unchanged instead of silently shrinking to Commons Pool2's
             // per-key default of 8.
             GenericKeyedObjectPoolConfig<DefaultParameterParser> keyedConfig = new GenericKeyedObjectPoolConfig<>();
             keyedConfig.setMaxIdlePerKey(DEFAULT_MAX_IDLE);

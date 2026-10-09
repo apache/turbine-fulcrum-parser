@@ -44,7 +44,7 @@
     <connection>scm:git:https://gitbox.apache.org/repos/asf/turbine-fulcrum-parser.git</connection>
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/turbine-fulcrum-parser.git</developerConnection>
     <url>https://github.com/apache/${turbine.site.path}/tree/${project.scm.tag}</url>
-    <tag>fulcrum-parser-4.0.0-candidate</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>

@@ -86,7 +86,12 @@
           <td>[0|1]</td>
           <td>
             If set, a configured DefaultParameterParser subclass is used for requests
-            instead of the default DefaultParameterParser class. This is not applicable for BaseValueParser, DefaultCookieParser.
+            instead of the default DefaultParameterParser class.  
+            A KeyedObjectPool (find more information here: 
+            <a href="https://commons.apache.org/proper/commons-pool/apidocs/index.html" target="_blank">org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig</a>)
+            is used, which gets initialized exactly with the same commons pool2 parameters as explained for item <i>pool2</i> like the other parsers 
+            BaseValueParser, DefaultCookieParser, which use the (unkeyed) org.apache.commons.pool2.impl.DefaultPooledObject.
+            The component configuration allows only a single subclass for the default parameter parser to be set using the KeyedObjectPool.             
           </td>
         </tr>
         <tr>
